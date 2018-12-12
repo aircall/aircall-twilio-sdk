@@ -1,5 +1,5 @@
 {
-  "name": "ls",
+  "name": "aircall-twilio",
   "version": "1.7.0-beta1",
   "description": "Twilio SDK beta - Enable Opus codec",
   "main": "twilio.js",
