@@ -1,0 +1,19 @@
+{
+  "name": "ls",
+  "version": "1.7.0-beta1",
+  "description": "Twilio SDK beta - Enable Opus codec",
+  "main": "twilio.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aircall/aircall-twilio-sdk.git"
+  },
+  "author": "Aircall",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/aircall/aircall-twilio-sdk/issues"
+  },
+  "homepage": "https://github.com/aircall/aircall-twilio-sdk#readme"
+}
