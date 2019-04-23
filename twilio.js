@@ -1,4 +1,4 @@
-/*! twilio-client.js 1.7.0
+/*! twilio-client.js 1.7.0-beta1
 
 The following license applies to all parts of this software except as
 documented below.
@@ -63,65 +63,47 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
   module.exports = { XMLHttpRequest: XMLHttpRequest };
   
   },{}],3:[function(require,module,exports){
-  'use strict';
-  
   var Device = require('./twilio/device').default;
-  
-  var _require = require('events'),
-      EventEmitter = _require.EventEmitter;
-  
-  var instance = void 0;
+  var EventEmitter = require('events').EventEmitter;
+  var instance;
   Object.defineProperty(Device, 'instance', {
-    get: function get() {
-      return instance;
-    },
-    set: function set(_instance) {
-      if (_instance === null) {
-        instance = null;
+      get: function () { return instance; },
+      set: function (_instance) {
+          if (_instance === null) {
+              instance = null;
+          }
       }
-    }
   });
-  
   Device.destroy = function destroySingleton() {
-    instance.destroy();
-    bindSingleton();
+      instance.destroy();
+      bindSingleton();
   };
-  
   /**
    * Create a new Device instance and bind its functions to the Device static. This maintains
    * backwards compatibility for the Device singleton behavior and will be removed in the next
    * breaking release.
    */
   function bindSingleton() {
-    instance = new Device();
-  
-    Object.getOwnPropertyNames(Device.prototype).concat(Object.getOwnPropertyNames(EventEmitter.prototype)).filter(function (prop) {
-      return typeof Device.prototype[prop] === 'function';
-    }).filter(function (prop) {
-      return prop !== 'destroy';
-    }).forEach(function (prop) {
-      Device[prop] = Device.prototype[prop].bind(instance);
-    });
+      instance = new Device();
+      Object.getOwnPropertyNames(Device.prototype)
+          .concat(Object.getOwnPropertyNames(EventEmitter.prototype))
+          .filter(function (prop) { return typeof Device.prototype[prop] === 'function'; })
+          .filter(function (prop) { return prop !== 'destroy'; })
+          .forEach(function (prop) { Device[prop] = Device.prototype[prop].bind(instance); });
   }
-  
   bindSingleton();
-  
-  Object.getOwnPropertyNames(instance).filter(function (prop) {
-    return typeof Device.prototype[prop] !== 'function';
-  }).forEach(function (prop) {
-    Object.defineProperty(Device, prop, {
-      get: function get() {
-        return instance[prop];
-      },
-      set: function set(_prop) {
-        instance[prop] = _prop;
-      }
-    });
+  Object.getOwnPropertyNames(instance)
+      .filter(function (prop) { return typeof Device.prototype[prop] !== 'function'; })
+      .forEach(function (prop) {
+      Object.defineProperty(Device, prop, {
+          get: function () { return instance[prop]; },
+          set: function (_prop) { instance[prop] = _prop; },
+      });
   });
-  
   exports.Device = Device;
   exports.PStream = require('./twilio/pstream').PStream;
   exports.Connection = require('./twilio/connection').Connection;
+  
   },{"./twilio/connection":5,"./twilio/device":7,"./twilio/pstream":12,"events":42}],4:[function(require,module,exports){
   "use strict";
   var __extends = (this && this.__extends) || (function () {
@@ -135,9 +117,6 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
       };
   })();
   Object.defineProperty(exports, "__esModule", { value: true });
-  /**
-   * @module Voice
-   */
   var events_1 = require("events");
   var outputdevicecollection_1 = require("./outputdevicecollection");
   var defaultMediaDevices = require("./shims/mediadevices");
@@ -146,7 +125,6 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
   var MediaDeviceInfoShim = require('./shims/mediadeviceinfo');
   /**
    * Aliases for audio kinds, used for labelling.
-   * @private
    */
   var kindAliases = {
       audioinput: 'Audio Input',
@@ -154,13 +132,11 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
   };
   /**
    * Provides input and output audio-based functionality in one convenient class.
-   * @publicapi
    */
   var AudioHelper = /** @class */ (function (_super) {
       __extends(AudioHelper, _super);
       /**
        * @constructor
-       * @private
        * @param onActiveOutputsChanged - A callback to be called when the user changes the active output devices.
        * @param onActiveInputChanged - A callback to be called when the user changes the active input device.
        * @param getUserMedia - The getUserMedia method to use.
@@ -176,10 +152,6 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
            * A Map of all audio output devices currently available to the browser by their device ID.
            */
           _this.availableOutputDevices = new Map();
-          /**
-           * The currently set audio constraints set by setAudioConstraints().
-           */
-          _this._audioConstraints = null;
           /**
            * The current input device.
            */
@@ -300,14 +272,6 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
           }
           return _this;
       }
-      Object.defineProperty(AudioHelper.prototype, "audioConstraints", {
-          /**
-           * The currently set audio constraints set by setAudioConstraints(). Starts as null.
-           */
-          get: function () { return this._audioConstraints; },
-          enumerable: true,
-          configurable: true
-      });
       Object.defineProperty(AudioHelper.prototype, "inputDevice", {
           /**
            * The active input device. Having no inputDevice specified by `setInputDevice()`
@@ -327,7 +291,6 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
       });
       /**
        * Start polling volume if it's supported and there's an input stream to poll.
-       * @private
        */
       AudioHelper.prototype._maybeStartPollingVolume = function () {
           var _this = this;
@@ -356,7 +319,6 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
       };
       /**
        * Stop polling volume if it's currently polling and there are no listeners.
-       * @private
        */
       AudioHelper.prototype._maybeStopPollingVolume = function () {
           if (!this.isVolumeSupported) {
@@ -373,7 +335,6 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
       };
       /**
        * Unbind the listeners from mediaDevices.
-       * @private
        */
       AudioHelper.prototype._unbind = function () {
           if (!this._mediaDevices) {
@@ -384,19 +345,8 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
               this._mediaDevices.removeEventListener('deviceinfochange', this._updateAvailableDevices);
           }
       };
-      /**
-       * Set the MediaTrackConstraints to be applied on every getUserMedia call for new input
-       * device audio. Any deviceId specified here will be ignored. Instead, device IDs should
-       * be specified using {@link AudioHelper#setInputDevice}. The returned Promise resolves
-       * when the media is successfully reacquired, or immediately if no input device is set.
-       * @param audioConstraints - The MediaTrackConstraints to apply.
-       */
-      AudioHelper.prototype.setAudioConstraints = function (audioConstraints) {
-          this._audioConstraints = Object.assign({}, audioConstraints);
-          delete this._audioConstraints.deviceId;
-          return this.inputDevice
-              ? this._setInputDevice(this.inputDevice.deviceId, true)
-              : Promise.resolve();
+      AudioHelper.prototype.on = function (eventName, handler) {
+          return _super.prototype.on.call(this, eventName, handler);
       };
       /**
        * Replace the current input device with a new device by ID.
@@ -410,17 +360,6 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
                   'audio input tracks simultaneously, even across different tabs. As a result, ' +
                   'Device.audio.setInputDevice is disabled on Firefox until support is added.\n' +
                   'Related BugZilla thread: https://bugzilla.mozilla.org/show_bug.cgi?id=1299324'));
-      };
-      /**
-       * Unset the MediaTrackConstraints to be applied on every getUserMedia call for new input
-       * device audio. The returned Promise resolves when the media is successfully reacquired,
-       * or immediately if no input device is set.
-       */
-      AudioHelper.prototype.unsetAudioConstraints = function () {
-          this._audioConstraints = null;
-          return this.inputDevice
-              ? this._setInputDevice(this.inputDevice.deviceId, true)
-              : Promise.resolve();
       };
       /**
        * Unset the input device, stopping the tracks. This should only be called when not in a connection, and
@@ -533,8 +472,9 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
                   track.stop();
               });
           }
-          var constraints = { audio: Object.assign({ deviceId: { exact: deviceId } }, this.audioConstraints) };
-          return this._getUserMedia(constraints).then(function (stream) {
+          return this._getUserMedia({
+              audio: { deviceId: { exact: deviceId } },
+          }).then(function (stream) {
               return _this._onActiveInputChanged(stream).then(function () {
                   _this._replaceStream(stream);
                   _this._inputDevice = device;
@@ -627,8 +567,6 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
       };
       return AudioHelper;
   }(events_1.EventEmitter));
-  (function (AudioHelper) {
-  })(AudioHelper || (AudioHelper = {}));
   exports.default = AudioHelper;
   
   },{"./outputdevicecollection":11,"./shims/mediadeviceinfo":25,"./shims/mediadevices":26,"./tslog":28,"./util":29,"events":42}],5:[function(require,module,exports){
@@ -644,11 +582,6 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
       };
   })();
   Object.defineProperty(exports, "__esModule", { value: true });
-  /**
-   * @module Voice
-   * @publicapi
-   * @internal
-   */
   var events_1 = require("events");
   var device_1 = require("./device");
   var tslog_1 = require("./tslog");
@@ -657,11 +590,11 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
   var PeerConnection = require('./rtc').PeerConnection;
   var RTCMonitor = require('./rtc/monitor');
   var util = require('util');
-  var DTMF_INTER_TONE_GAP = 70;
-  var DTMF_PAUSE_DURATION = 500;
-  var DTMF_TONE_DURATION = 160;
-  var METRICS_BATCH_SIZE = 10;
-  var METRICS_DELAY = 20000;
+  exports.DTMF_INTER_TONE_GAP = 70;
+  exports.DTMF_PAUSE_DURATION = 500;
+  exports.DTMF_TONE_DURATION = 160;
+  exports.METRICS_BATCH_SIZE = 10;
+  exports.METRICS_DELAY = 20000;
   var WARNING_NAMES = {
       audioInputLevel: 'audio-input-level',
       audioOutputLevel: 'audio-output-level',
@@ -677,14 +610,61 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
   };
   var hasBeenWarnedHandlers = false;
   /**
+   * Possible states of the {@link Connection}.
+   */
+  var ConnectionState;
+  (function (ConnectionState) {
+      ConnectionState["Closed"] = "closed";
+      ConnectionState["Connecting"] = "connecting";
+      ConnectionState["Open"] = "open";
+      ConnectionState["Pending"] = "pending";
+      ConnectionState["Ringing"] = "ringing";
+  })(ConnectionState = exports.ConnectionState || (exports.ConnectionState = {}));
+  /**
+   * Different issues that may have been experienced during a call, that can be
+   * reported to Twilio Insights via {@link Connection}.postFeedback().
+   */
+  var FeedbackIssue;
+  (function (FeedbackIssue) {
+      FeedbackIssue["AudioLatency"] = "audio-latency";
+      FeedbackIssue["ChoppyAudio"] = "choppy-audio";
+      FeedbackIssue["DroppedCall"] = "dropped-call";
+      FeedbackIssue["Echo"] = "echo";
+      FeedbackIssue["NoisyCall"] = "noisy-call";
+      FeedbackIssue["OneWayAudio"] = "one-way-audio";
+  })(FeedbackIssue = exports.FeedbackIssue || (exports.FeedbackIssue = {}));
+  /**
+   * A rating of call quality experienced during a call, to be reported to Twilio Insights
+   * via {@link Connection}.postFeedback().
+   */
+  var FeedbackScore;
+  (function (FeedbackScore) {
+      FeedbackScore[FeedbackScore["One"] = 1] = "One";
+      FeedbackScore[FeedbackScore["Two"] = 2] = "Two";
+      FeedbackScore[FeedbackScore["Three"] = 3] = "Three";
+      FeedbackScore[FeedbackScore["Four"] = 4] = "Four";
+      FeedbackScore[FeedbackScore["Five"] = 5] = "Five";
+  })(FeedbackScore = exports.FeedbackScore || (exports.FeedbackScore = {}));
+  /**
+   * The directionality of the {@link Connection}, whether incoming or outgoing.
+   */
+  var CallDirection;
+  (function (CallDirection) {
+      CallDirection["Incoming"] = "INCOMING";
+      CallDirection["Outgoing"] = "OUTGOING";
+  })(CallDirection = exports.CallDirection || (exports.CallDirection = {}));
+  var Codec;
+  (function (Codec) {
+      Codec["Opus"] = "opus";
+      Codec["PCMU"] = "pcmu";
+  })(Codec = exports.Codec || (exports.Codec = {}));
+  /**
    * A {@link Connection} represents a media and signaling connection to a TwiML application.
-   * @publicapi
    */
   var Connection = /** @class */ (function (_super) {
       __extends(Connection, _super);
       /**
        * @constructor
-       * @private
        * @param config - Mandatory configuration options
        * @param [options] - Optional settings
        */
@@ -722,7 +702,7 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
           /**
            * State of the {@link Connection}.
            */
-          _this._status = Connection.State.Pending;
+          _this._status = ConnectionState.Pending;
           /**
            * Options passed to this {@link Connection}.
            */
@@ -731,7 +711,7 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
               enableRingingState: false,
               mediaStreamFactory: PeerConnection,
               offerSdp: null,
-              shouldPlayDisconnect: function () { return true; },
+              shouldPlayDisconnect: true,
           };
           /**
            * Whether the {@link Connection} should send a hangup on disconnect.
@@ -739,7 +719,6 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
           _this.sendHangup = true;
           /**
            * String representation of {@link Connection} instance.
-           * @private
            */
           _this.toString = function () { return '[Twilio.Connection instance]'; };
           /**
@@ -766,7 +745,7 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
               // (rrowland) Is this check necessary? Verify, and if so move to pstream / VSP module.
               var callsid = payload.callsid;
               if (_this.parameters.CallSid === callsid) {
-                  _this._status = Connection.State.Closed;
+                  _this._status = ConnectionState.Closed;
                   _this.emit('cancel');
                   _this.pstream.removeListener('cancel', _this._onCancel);
               }
@@ -813,12 +792,12 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
           _this._onRinging = function (payload) {
               _this._setCallSid(payload);
               // If we're not in 'connecting' or 'ringing' state, this event was received out of order.
-              if (_this._status !== Connection.State.Connecting && _this._status !== Connection.State.Ringing) {
+              if (_this._status !== ConnectionState.Connecting && _this._status !== ConnectionState.Ringing) {
                   return;
               }
               var hasEarlyMedia = !!payload.sdp;
               if (_this.options.enableRingingState) {
-                  _this._status = Connection.State.Ringing;
+                  _this._status = ConnectionState.Ringing;
                   _this._publisher.info('connection', 'outgoing-ringing', { hasEarlyMedia: hasEarlyMedia }, _this);
                   _this.emit('ringing', hasEarlyMedia);
                   // answerOnBridge=false will send a 183, which we need to interpret as `answer` when
@@ -837,7 +816,7 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
               sample.inputVolume = _this._latestInputVolume;
               sample.outputVolume = _this._latestOutputVolume;
               _this._metricsSamples.push(sample);
-              if (_this._metricsSamples.length >= METRICS_BATCH_SIZE) {
+              if (_this._metricsSamples.length >= exports.METRICS_BATCH_SIZE) {
                   _this._publishMetrics();
               }
           };
@@ -891,31 +870,30 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
           _this.message = options && options.twimlParams || {};
           _this.customParameters = new Map(Object.entries(_this.message).map(function (_a) {
               var key = _a[0], val = _a[1];
-              return [key, String(val)];
+              return [key, val ? val.toString() : ''];
           }));
           Object.assign(_this.options, options);
           if (_this.options.callParameters) {
               _this.parameters = _this.options.callParameters;
           }
-          _this._direction = _this.parameters.CallSid ? Connection.CallDirection.Incoming : Connection.CallDirection.Outgoing;
+          _this._direction = _this.parameters.CallSid ? CallDirection.Incoming : CallDirection.Outgoing;
           _this._log.setLogLevel(_this.options.debug ? tslog_1.LogLevel.Debug
               : _this.options.warnings ? tslog_1.LogLevel.Warn
                   : tslog_1.LogLevel.Off);
           var publisher = _this._publisher = config.publisher;
-          if (_this._direction === Connection.CallDirection.Incoming) {
+          if (_this._direction === CallDirection.Incoming) {
               publisher.info('connection', 'incoming', null, _this);
           }
           var monitor = _this._monitor = new (_this.options.RTCMonitor || RTCMonitor)();
           monitor.on('sample', _this._onRTCSample);
           // First 20 seconds or so are choppy, so let's not bother with these warnings.
           monitor.disableWarnings();
-          setTimeout(function () { return monitor.enableWarnings(); }, METRICS_DELAY);
+          setTimeout(function () { return monitor.enableWarnings(); }, exports.METRICS_DELAY);
           monitor.on('warning', _this._reemitWarning);
           monitor.on('warning-cleared', _this._reemitWarningCleared);
           _this.mediaStream = new (_this.options.MediaStream || _this.options.mediaStreamFactory)(config.audioHelper, config.pstream, config.getUserMedia, {
               codecPreferences: _this.options.codecPreferences,
               debug: _this.options.debug,
-              dscp: _this.options.dscp,
               warnings: _this.options.warnings,
           });
           _this.on('volume', function (inputVolume, outputVolume) {
@@ -928,7 +906,7 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
               _this._publisher.post(level, 'ice-connection-state', state, null, _this);
           };
           _this.mediaStream.onicegatheringstatechange = function (state) {
-              _this._publisher.debug('ice-gathering-state', state, null, _this);
+              _this._publisher.debug('signaling-state', state, null, _this);
           };
           _this.mediaStream.onsignalingstatechange = function (state) {
               _this._publisher.debug('signaling-state', state, null, _this);
@@ -969,10 +947,10 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
               // for _status 'open', we'd accidentally close the PeerConnection.
               //
               // See <https://code.google.com/p/webrtc/issues/detail?id=4996>.
-              if (_this._status === Connection.State.Open) {
+              if (_this._status === ConnectionState.Open) {
                   return;
               }
-              else if (_this._status === Connection.State.Ringing || _this._status === Connection.State.Connecting) {
+              else if (_this._status === ConnectionState.Ringing || _this._status === ConnectionState.Connecting) {
                   _this.mute(false);
                   _this._maybeTransitionToOpen();
               }
@@ -982,9 +960,9 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
               }
           };
           _this.mediaStream.onclose = function () {
-              _this._status = Connection.State.Closed;
-              if (_this.options.shouldPlayDisconnect && _this.options.shouldPlayDisconnect()) {
-                  _this._soundcache.get(device_1.default.SoundName.Disconnect).play();
+              _this._status = ConnectionState.Closed;
+              if (_this.options.shouldPlayDisconnect) {
+                  _this._soundcache.get(device_1.SoundName.Disconnect).play();
               }
               monitor.disable();
               _this._publishMetrics();
@@ -1021,7 +999,6 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
       /**
        * Get the real CallSid. Returns null if not present or is a temporary call sid.
        * @deprecated
-       * @private
        */
       Connection.prototype._getRealCallSid = function () {
           this._log.warn('_getRealCallSid is deprecated and will be removed in 2.0.');
@@ -1030,28 +1007,11 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
       /**
        * Get the temporary CallSid.
        * @deprecated
-       * @private
        */
       Connection.prototype._getTempCallSid = function () {
           this._log.warn('_getTempCallSid is deprecated and will be removed in 2.0. \
                       Please use outboundConnectionId instead.');
           return this.outboundConnectionId;
-      };
-      /**
-       * Set the audio input tracks from a given stream.
-       * @param stream
-       * @private
-       */
-      Connection.prototype._setInputTracksFromStream = function (stream) {
-          return this.mediaStream.setInputTracksFromStream(stream);
-      };
-      /**
-       * Set the audio output sink IDs.
-       * @param sinkIds
-       * @private
-       */
-      Connection.prototype._setSinkIds = function (sinkIds) {
-          return this.mediaStream._setSinkIds(sinkIds);
       };
       Connection.prototype.accept = function (handlerOrConstraints) {
           var _this = this;
@@ -1059,13 +1019,13 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
               this._addHandler('accept', handlerOrConstraints);
               return;
           }
-          if (this._status !== Connection.State.Pending) {
+          if (this._status !== ConnectionState.Pending) {
               return;
           }
           var audioConstraints = handlerOrConstraints || this.options.audioConstraints;
-          this._status = Connection.State.Connecting;
+          this._status = ConnectionState.Connecting;
           var connect = function () {
-              if (_this._status !== Connection.State.Connecting) {
+              if (_this._status !== ConnectionState.Connecting) {
                   // call must have been canceled
                   _this._cleanupEventListeners();
                   _this.mediaStream.close();
@@ -1091,7 +1051,7 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
               var rtcConfig = Object.assign({}, _this.options.rtcConfiguration, {
                   sdpSemantics: 'plan-b',
               });
-              if (_this._direction === Connection.CallDirection.Incoming) {
+              if (_this._direction === CallDirection.Incoming) {
                   _this._isAnswered = true;
                   _this.mediaStream.answerIncomingCall(_this.parameters.CallSid, _this.options.offerSdp, _this.options.rtcConstraints, rtcConfig, onLocalAnswer);
               }
@@ -1163,7 +1123,7 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
           this._disconnect();
       };
       /**
-       * @deprecated - Set a handler for the {@link errorEvent}
+       * @deprecated - Set a handler for the error event.
        */
       Connection.prototype.error = function (handler) {
           if (typeof handler === 'function') {
@@ -1187,10 +1147,10 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
               this._addHandler('cancel', handler);
               return;
           }
-          if (this._status !== Connection.State.Pending) {
+          if (this._status !== ConnectionState.Pending) {
               return;
           }
-          this._status = Connection.State.Closed;
+          this._status = ConnectionState.Closed;
           this.emit('cancel');
           this.mediaStream.ignore(this.parameters.CallSid);
           this._publisher.info('connection', 'ignored-by-local', null, this);
@@ -1220,7 +1180,7 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
               this._addHandler('reject', handler);
               return;
           }
-          if (this._status !== Connection.State.Pending) {
+          if (this._status !== ConnectionState.Pending) {
               return;
           }
           var payload = { callsid: this.parameters.CallSid };
@@ -1244,11 +1204,11 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
           if (typeof score === 'undefined' || score === null) {
               return this._postFeedbackDeclined();
           }
-          if (!Object.values(Connection.FeedbackScore).includes(score)) {
-              throw new Error("Feedback score must be one of: " + Object.values(Connection.FeedbackScore));
+          if (!Object.values(FeedbackScore).includes(score)) {
+              throw new Error("Feedback score must be one of: " + Object.values(FeedbackScore));
           }
-          if (typeof issue !== 'undefined' && issue !== null && !Object.values(Connection.FeedbackIssue).includes(issue)) {
-              throw new Error("Feedback issue must be one of: " + Object.values(Connection.FeedbackIssue));
+          if (typeof issue !== 'undefined' && issue !== null && !Object.values(FeedbackIssue).includes(issue)) {
+              throw new Error("Feedback issue must be one of: " + Object.values(FeedbackIssue));
           }
           return this._publisher.info('feedback', 'received', {
               issue_name: issue,
@@ -1296,9 +1256,9 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
               }
               var dtmf = dtmfs.shift();
               if (dtmf && dtmf.length) {
-                  dtmfSender.insertDTMF(dtmf, DTMF_TONE_DURATION, DTMF_INTER_TONE_GAP);
+                  dtmfSender.insertDTMF(dtmf, exports.DTMF_TONE_DURATION, exports.DTMF_INTER_TONE_GAP);
               }
-              setTimeout(insertDTMF.bind(null, dtmfs), DTMF_PAUSE_DURATION);
+              setTimeout(insertDTMF.bind(null, dtmfs), exports.DTMF_PAUSE_DURATION);
           }
           if (dtmfSender) {
               if (!('canInsertDTMF' in dtmfSender) || dtmfSender.canInsertDTMF) {
@@ -1342,7 +1302,10 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
           this.mute(false);
       };
       /**
-       * @deprecated - Set a handler for the {@link volumeEvent}
+       * Fired on `requestAnimationFrame` (up to 60fps, depending on browser) with
+       *   the current input and output volumes, as a percentage of maximum
+       *   volume, between -100dB and -30dB. Represented by a floating point
+       *   number between 0.0 and 1.0, inclusive.
        * @param handler
        */
       Connection.prototype.volume = function (handler) {
@@ -1418,9 +1381,9 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
        */
       Connection.prototype._disconnect = function (message, wasRemote) {
           message = typeof message === 'string' ? message : null;
-          if (this._status !== Connection.State.Open
-              && this._status !== Connection.State.Connecting
-              && this._status !== Connection.State.Ringing) {
+          if (this._status !== ConnectionState.Open
+              && this._status !== ConnectionState.Connecting
+              && this._status !== ConnectionState.Ringing) {
               return;
           }
           this._log.info('Disconnecting...');
@@ -1446,7 +1409,7 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
        */
       Connection.prototype._maybeTransitionToOpen = function () {
           if (this.mediaStream && this.mediaStream.status === 'open' && this._isAnswered) {
-              this._status = Connection.State.Open;
+              this._status = ConnectionState.Open;
               this.emit('accept', this);
           }
       };
@@ -1482,66 +1445,26 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
           this.mediaStream.callSid = callSid;
       };
       /**
+       * Set the audio input tracks from a given stream.
+       * @param stream
+       */
+      Connection.prototype._setInputTracksFromStream = function (stream) {
+          return this.mediaStream.setInputTracksFromStream(stream);
+      };
+      /**
+       * Set the audio output sink IDs.
+       * @param sinkIds
+       */
+      Connection.prototype._setSinkIds = function (sinkIds) {
+          return this.mediaStream._setSinkIds(sinkIds);
+      };
+      /**
        * String representation of the {@link Connection} class.
-       * @private
        */
       Connection.toString = function () { return '[Twilio.Connection class]'; };
       return Connection;
   }(events_1.EventEmitter));
-  (function (Connection) {
-      /**
-       * Possible states of the {@link Connection}.
-       */
-      var State;
-      (function (State) {
-          State["Closed"] = "closed";
-          State["Connecting"] = "connecting";
-          State["Open"] = "open";
-          State["Pending"] = "pending";
-          State["Ringing"] = "ringing";
-      })(State = Connection.State || (Connection.State = {}));
-      /**
-       * Different issues that may have been experienced during a call, that can be
-       * reported to Twilio Insights via {@link Connection}.postFeedback().
-       */
-      var FeedbackIssue;
-      (function (FeedbackIssue) {
-          FeedbackIssue["AudioLatency"] = "audio-latency";
-          FeedbackIssue["ChoppyAudio"] = "choppy-audio";
-          FeedbackIssue["DroppedCall"] = "dropped-call";
-          FeedbackIssue["Echo"] = "echo";
-          FeedbackIssue["NoisyCall"] = "noisy-call";
-          FeedbackIssue["OneWayAudio"] = "one-way-audio";
-      })(FeedbackIssue = Connection.FeedbackIssue || (Connection.FeedbackIssue = {}));
-      /**
-       * A rating of call quality experienced during a call, to be reported to Twilio Insights
-       * via {@link Connection}.postFeedback().
-       */
-      var FeedbackScore;
-      (function (FeedbackScore) {
-          FeedbackScore[FeedbackScore["One"] = 1] = "One";
-          FeedbackScore[FeedbackScore["Two"] = 2] = "Two";
-          FeedbackScore[FeedbackScore["Three"] = 3] = "Three";
-          FeedbackScore[FeedbackScore["Four"] = 4] = "Four";
-          FeedbackScore[FeedbackScore["Five"] = 5] = "Five";
-      })(FeedbackScore = Connection.FeedbackScore || (Connection.FeedbackScore = {}));
-      /**
-       * The directionality of the {@link Connection}, whether incoming or outgoing.
-       */
-      var CallDirection;
-      (function (CallDirection) {
-          CallDirection["Incoming"] = "INCOMING";
-          CallDirection["Outgoing"] = "OUTGOING";
-      })(CallDirection = Connection.CallDirection || (Connection.CallDirection = {}));
-      /**
-       * Valid audio codecs to use for the media connection.
-       */
-      var Codec;
-      (function (Codec) {
-          Codec["Opus"] = "opus";
-          Codec["PCMU"] = "pcmu";
-      })(Codec = Connection.Codec || (Connection.Codec = {}));
-  })(Connection || (Connection = {}));
+  exports.default = Connection;
   function generateTempCallSid() {
       return 'TJSxxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
           /* tslint:disable:no-bitwise */
@@ -1551,7 +1474,6 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
           return v.toString(16);
       });
   }
-  exports.default = Connection;
   
   },{"./constants":6,"./device":7,"./rtc":16,"./rtc/monitor":18,"./tslog":28,"./util":29,"events":42,"util":53}],6:[function(require,module,exports){
   var pkg = require('../../package.json');
@@ -1571,11 +1493,6 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
       };
   })();
   Object.defineProperty(exports, "__esModule", { value: true });
-  /**
-   * @module Voice
-   * @preferred
-   * @publicapi
-   */
   var events_1 = require("events");
   var audiohelper_1 = require("./audiohelper");
   var connection_1 = require("./connection");
@@ -1595,16 +1512,63 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
   var networkInformation = navigator.connection
       || navigator.mozConnection
       || navigator.webkitConnection;
-  var REGISTRATION_INTERVAL = 30000;
-  var RINGTONE_PLAY_TIMEOUT = 2000;
+  exports.REGISTRATION_INTERVAL = 30000;
+  exports.RINGTONE_PLAY_TIMEOUT = 2000;
   var hasBeenWarnedHandlers = false;
   var hasBeenWarnedSounds = false;
   /**
+   * All valid {@link Device} event names.
+   */
+  var DeviceEvent;
+  (function (DeviceEvent) {
+      DeviceEvent["Cancel"] = "cancel";
+      DeviceEvent["Connect"] = "connect";
+      DeviceEvent["Disconnect"] = "disconnect";
+      DeviceEvent["Error"] = "error";
+      DeviceEvent["Incoming"] = "incoming";
+      DeviceEvent["Offline"] = "offline";
+      DeviceEvent["Ready"] = "ready";
+  })(DeviceEvent = exports.DeviceEvent || (exports.DeviceEvent = {}));
+  /**
+   * All possible {@link Device} statuses.
+   */
+  var DeviceStatus;
+  (function (DeviceStatus) {
+      DeviceStatus["Busy"] = "busy";
+      DeviceStatus["Offline"] = "offline";
+      DeviceStatus["Ready"] = "ready";
+  })(DeviceStatus = exports.DeviceStatus || (exports.DeviceStatus = {}));
+  /**
+   * Names of all sounds handled by the {@link Device}.
+   */
+  var SoundName;
+  (function (SoundName) {
+      SoundName["Incoming"] = "incoming";
+      SoundName["Outgoing"] = "outgoing";
+      SoundName["Disconnect"] = "disconnect";
+      SoundName["Dtmf0"] = "dtmf0";
+      SoundName["Dtmf1"] = "dtmf1";
+      SoundName["Dtmf2"] = "dtmf2";
+      SoundName["Dtmf3"] = "dtmf3";
+      SoundName["Dtmf4"] = "dtmf4";
+      SoundName["Dtmf5"] = "dtmf5";
+      SoundName["Dtmf6"] = "dtmf6";
+      SoundName["Dtmf7"] = "dtmf7";
+      SoundName["Dtmf8"] = "dtmf8";
+      SoundName["Dtmf9"] = "dtmf9";
+      SoundName["DtmfS"] = "dtmfs";
+      SoundName["DtmfH"] = "dtmfh";
+  })(SoundName = exports.SoundName || (exports.SoundName = {}));
+  /**
    * Twilio Device. Allows registration for incoming calls, and placing outgoing calls.
-   * @publicapi
    */
   var Device = /** @class */ (function (_super) {
       __extends(Device, _super);
+      /**
+       * @constructor
+       * @param [token] - A Twilio JWT token string granting this {@link Device} access.
+       * @param [options]
+       */
       function Device(token, options) {
           var _this = _super.call(this) || this;
           /**
@@ -1612,12 +1576,12 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
            */
           _this.audio = null;
           /**
-           * An array of {@link Connection}s. Though only one can be active, multiple may exist when there
-           * are multiple incoming, unanswered {@link Connection}s.
+           * An array of connections. Though only one can be active, multiple may exist when there
+           * are multiple incoming, unanswered connections.
            */
           _this.connections = [];
           /**
-           * Whether or not {@link Device.setup} has been called.
+           * Whether or not Device.setup() has been called.
            */
           _this.isInitialized = false;
           /**
@@ -1646,9 +1610,9 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
            * Whether each sound is enabled.
            */
           _this._enabledSounds = (_a = {},
-              _a[Device.SoundName.Disconnect] = true,
-              _a[Device.SoundName.Incoming] = true,
-              _a[Device.SoundName.Outgoing] = true,
+              _a[SoundName.Disconnect] = true,
+              _a[SoundName.Incoming] = true,
+              _a[SoundName.Outgoing] = true,
               _a);
           /**
            * An instance of Log to use.
@@ -1669,7 +1633,7 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
           /**
            * The current status of the {@link Device}.
            */
-          _this._status = Device.Status.Offline;
+          _this._status = DeviceStatus.Offline;
           /**
            * Value of 'audio' determines whether we should be registered for incoming calls.
            */
@@ -1681,7 +1645,7 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
               allowIncomingWhileBusy: false,
               audioConstraints: true,
               closeProtection: false,
-              codecPreferences: [connection_1.default.Codec.PCMU, connection_1.default.Codec.Opus],
+              codecPreferences: [connection_1.Codec.PCMU, connection_1.Codec.Opus],
               connectionFactory: connection_1.default,
               debug: false,
               dscp: true,
@@ -1724,9 +1688,9 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
               }
               if (connection) {
                   var callSid = connection.parameters.CallSid;
-                  setIfDefined('call_sid', /^TJ/.test(callSid) ? undefined : callSid);
+                  setIfDefined('call_sid', /^TJ/.test(callSid) ? null : callSid);
                   setIfDefined('temp_call_sid', connection.outboundConnectionId);
-                  payload.direction = connection.direction;
+                  payload.direction = connection._direction;
               }
               var stream = _this.stream;
               if (stream) {
@@ -1815,11 +1779,11 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
               });
               _this.connections.push(connection);
               connection.once('accept', function () {
-                  _this.soundcache.get(Device.SoundName.Incoming).stop();
+                  _this.soundcache.get(SoundName.Incoming).stop();
                   _this._publishNetworkChange();
               });
               var play = (_this._enabledSounds.incoming && !wasBusy)
-                  ? function () { return _this.soundcache.get(Device.SoundName.Incoming).play(); }
+                  ? function () { return _this.soundcache.get(SoundName.Incoming).play(); }
                   : function () { return Promise.resolve(); };
               _this._showIncomingConnection(connection, play);
           };
@@ -1828,7 +1792,7 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
            */
           _this._onSignalingOffline = function () {
               _this._log.info('Stream is offline');
-              _this._status = Device.Status.Offline;
+              _this._status = DeviceStatus.Offline;
               _this._region = null;
               _this.emit('offline', _this);
           };
@@ -1837,7 +1801,7 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
            */
           _this._onSignalingReady = function () {
               _this._log.info('Stream is ready');
-              _this._status = Device.Status.Ready;
+              _this._status = DeviceStatus.Ready;
               _this.emit('ready', _this);
           };
           /**
@@ -1905,7 +1869,6 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
       Object.defineProperty(Device, "audioContext", {
           /**
            * The AudioContext to be used by {@link Device} instances.
-           * @private
            */
           get: function () {
               return Device._audioContext;
@@ -1916,7 +1879,6 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
       Object.defineProperty(Device, "extension", {
           /**
            * Which sound file extension is supported.
-           * @private
            */
           get: function () {
               // NOTE(mroberts): Node workaround.
@@ -1951,13 +1913,12 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
       });
       /**
        * String representation of {@link Device} class.
-       * @private
        */
       Device.toString = function () {
           return '[Twilio.Device class]';
       };
       /**
-       * Return the active {@link Connection}. Null or undefined for backward compatibility.
+       * Return the active @{link Connection}. Null or undefined for backward compatibility.
        */
       Device.prototype.activeConnection = function () {
           if (!this.isInitialized) {
@@ -1969,15 +1930,18 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
           return this._activeConnection || this.connections[0];
       };
       /**
-       * @deprecated Set a handler for the cancel event.
+       * @deprecated - Set a handler for the cancel event.
        * @param handler
        */
       Device.prototype.cancel = function (handler) {
-          return this._addHandler(Device.EventName.Cancel, handler);
+          return this._addHandler(DeviceEvent.Cancel, handler);
       };
+      /**
+       * @private
+       */
       Device.prototype.connect = function (paramsOrHandler, audioConstraints) {
           if (typeof paramsOrHandler === 'function') {
-              this._addHandler(Device.EventName.Connect, paramsOrHandler);
+              this._addHandler(DeviceEvent.Connect, paramsOrHandler);
               return null;
           }
           this._throwUnlessSetup('connect');
@@ -1990,7 +1954,7 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
           // Make sure any incoming connections are ignored
           this.connections.splice(0).forEach(function (conn) { return conn.ignore(); });
           // Stop the incoming sound if it's playing
-          this.soundcache.get(Device.SoundName.Incoming).stop();
+          this.soundcache.get(SoundName.Incoming).stop();
           connection.accept(audioConstraints);
           this._publishNetworkChange();
           return connection;
@@ -2016,12 +1980,11 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
           }
       };
       /**
-       * Set a handler for the disconnect event.
-       * @deprecated Use {@link Device.on}.
+       * @deprecated - Set a handler for the disconnect event.
        * @param handler
        */
       Device.prototype.disconnect = function (handler) {
-          return this._addHandler(Device.EventName.Disconnect, handler);
+          return this._addHandler(DeviceEvent.Disconnect, handler);
       };
       /**
        * Disconnect all {@link Connection}s.
@@ -2031,62 +1994,47 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
           this._disconnectAll();
       };
       /**
-       * Set a handler for the error event.
-       * @deprecated Use {@link Device.on}.
+       * @deprecated - Set a handler for the error event.
        * @param handler
        */
       Device.prototype.error = function (handler) {
-          return this._addHandler(Device.EventName.Error, handler);
+          return this._addHandler(DeviceEvent.Error, handler);
       };
       /**
-       * Set a handler for the incoming event.
-       * @deprecated Use {@link Device.on}.
+       * @deprecated - Set a handler for the incoming event.
        * @param handler
        */
       Device.prototype.incoming = function (handler) {
-          return this._addHandler(Device.EventName.Incoming, handler);
+          return this._addHandler(DeviceEvent.Incoming, handler);
       };
       /**
-       * Set a handler for the offline event.
-       * @deprecated Use {@link Device.on}.
+       * @deprecated - Set a handler for the offline event.
        * @param handler
        */
       Device.prototype.offline = function (handler) {
-          return this._addHandler(Device.EventName.Offline, handler);
+          return this._addHandler(DeviceEvent.Offline, handler);
       };
       /**
-       * Set a handler for the ready event.
-       * @deprecated Use {@link Device.on}.
+       * @deprecated - Set a handler for the ready event.
        * @param handler
        */
       Device.prototype.ready = function (handler) {
-          return this._addHandler(Device.EventName.Ready, handler);
+          return this._addHandler(DeviceEvent.Ready, handler);
       };
       /**
-       * Get the {@link Region} string the {@link Device} is currently connected to, or 'offline'
-       * if not connected.
+       * Get the region the {@link Device} is currently connected to.
        */
       Device.prototype.region = function () {
           this._throwUnlessSetup('region');
           return typeof this._region === 'string' ? this._region : 'offline';
       };
       /**
-       * Register to receive incoming calls. Does not need to be called unless {@link Device.unregisterPresence}
-       * has been called directly.
+       * Register to receive incoming calls.
        */
       Device.prototype.registerPresence = function () {
           this._throwUnlessSetup('registerPresence');
           this.mediaPresence.audio = true;
           this._sendPresence();
-          return this;
-      };
-      /**
-       * Remove an event listener
-       * @param event - The event name to stop listening for
-       * @param listener - The callback to remove
-       */
-      Device.prototype.removeListener = function (event, listener) {
-          events_1.EventEmitter.prototype.removeListener.call(this, event, listener);
           return this;
       };
       /**
@@ -2145,8 +2093,7 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
               }
               return _this._enabledSounds[key];
           };
-          [Device.SoundName.Disconnect, Device.SoundName.Incoming, Device.SoundName.Outgoing]
-              .forEach(function (eventName) {
+          [SoundName.Disconnect, SoundName.Incoming, SoundName.Outgoing].forEach(function (eventName) {
               _this.sounds[eventName] = getOrSetSound.bind(null, eventName);
           });
           var regionURI = regions_1.getRegionURI(this.options.region, function (newRegion) {
@@ -2220,7 +2167,7 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
           // removing this next breaking change. Any error should be caught by the
           // customer, and anything that's not a fatal error should not be emitted
           // via error event.
-          this.on(Device.EventName.Error, function () {
+          this.on('error', function () {
               if (_this.listenerCount('error') > 1) {
                   return;
               }
@@ -2233,11 +2180,10 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
        */
       Device.prototype.status = function () {
           this._throwUnlessSetup('status');
-          return this._activeConnection ? Device.Status.Busy : this._status;
+          return this._activeConnection ? DeviceStatus.Busy : this._status;
       };
       /**
        * String representation of {@link Device} instance.
-       * @private
        */
       Device.prototype.toString = function () {
           return '[Twilio.Device instance]';
@@ -2332,13 +2278,12 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
               codecPreferences: this.options.codecPreferences,
               debug: this.options.debug,
               dialtonePlayer: Device._dialtonePlayer,
-              dscp: this.options.dscp,
               enableRingingState: this.options.enableRingingState,
               getInputStream: function () { return _this._connectionInputStream; },
               getSinkIds: function () { return _this._connectionSinkIds; },
               rtcConfiguration: this.options.rtcConfiguration || { iceServers: this.options.iceServers },
               rtcConstraints: this.options.rtcConstraints,
-              shouldPlayDisconnect: function () { return _this._enabledSounds.disconnect; },
+              shouldPlayDisconnect: this._enabledSounds.disconnect,
               twimlParams: twimlParams,
               warnings: this.options.warnings,
           }, options);
@@ -2349,8 +2294,8 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
               if (_this.audio) {
                   _this.audio._maybeStartPollingVolume();
               }
-              if (connection.direction === connection_1.default.CallDirection.Outgoing && _this._enabledSounds.outgoing) {
-                  _this.soundcache.get(Device.SoundName.Outgoing).play();
+              if (connection.direction === connection_1.CallDirection.Outgoing && _this._enabledSounds.outgoing) {
+                  _this.soundcache.get(SoundName.Outgoing).play();
               }
               _this.emit('connect', connection);
           });
@@ -2395,7 +2340,7 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
        */
       Device.prototype._maybeStopIncomingSound = function () {
           if (!this.connections.length) {
-              this.soundcache.get(Device.SoundName.Incoming).stop();
+              this.soundcache.get(SoundName.Incoming).stop();
           }
       };
       /**
@@ -2419,7 +2364,6 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
       Device.prototype._setupStream = function (token) {
           this._log.info('Setting up VSP');
           this.stream = this.options.pStreamFactory(token, this.options.chunderw, {
-              backoffMaxMs: this.options.backoffMaxMs,
               debug: this.options.debug,
           });
           this.stream.addListener('close', this._onSignalingClose);
@@ -2452,7 +2396,7 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
           this._stopRegistrationTimer();
           this.regTimer = setTimeout(function () {
               _this._sendPresence();
-          }, REGISTRATION_INTERVAL);
+          }, exports.REGISTRATION_INTERVAL);
       };
       /**
        * Stop sending registration messages to the signaling server.
@@ -2475,7 +2419,7 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
               new Promise(function (resolve, reject) {
                   timeout = setTimeout(function () {
                       reject(new Error('Playing incoming ringtone took too long; it might not play. Continuing execution...'));
-                  }, RINGTONE_PLAY_TIMEOUT);
+                  }, exports.RINGTONE_PLAY_TIMEOUT);
               }),
           ]).catch(function (reason) {
               _this._log.info(reason.message);
@@ -2489,7 +2433,7 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
        * @param sinkIds - An array of device IDs
        */
       Device.prototype._updateRingtoneSinkIds = function (sinkIds) {
-          return Promise.resolve(this.soundcache.get(Device.SoundName.Incoming).setSinkIds(sinkIds));
+          return Promise.resolve(this.soundcache.get(SoundName.Incoming).setSinkIds(sinkIds));
       };
       /**
        * Update the device IDs of output devices being used to play the non-ringtone sounds
@@ -2498,7 +2442,7 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
        */
       Device.prototype._updateSpeakerSinkIds = function (sinkIds) {
           Array.from(this.soundcache.entries())
-              .filter(function (entry) { return entry[0] !== Device.SoundName.Incoming; })
+              .filter(function (entry) { return entry[0] !== SoundName.Incoming; })
               .forEach(function (entry) { return entry[1].setSinkIds(sinkIds); });
           this._connectionSinkIds = sinkIds;
           var connection = this._activeConnection;
@@ -2508,59 +2452,10 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
       };
       return Device;
   }(events_1.EventEmitter));
-  (function (Device) {
-      /**
-       * All valid {@link Device} event names.
-       */
-      var EventName;
-      (function (EventName) {
-          EventName["Cancel"] = "cancel";
-          EventName["Connect"] = "connect";
-          EventName["Disconnect"] = "disconnect";
-          EventName["Error"] = "error";
-          EventName["Incoming"] = "incoming";
-          EventName["Offline"] = "offline";
-          EventName["Ready"] = "ready";
-      })(EventName = Device.EventName || (Device.EventName = {}));
-      /**
-       * All possible {@link Device} statuses.
-       */
-      var Status;
-      (function (Status) {
-          Status["Busy"] = "busy";
-          Status["Offline"] = "offline";
-          Status["Ready"] = "ready";
-      })(Status = Device.Status || (Device.Status = {}));
-      /**
-       * Names of all sounds handled by the {@link Device}.
-       */
-      var SoundName;
-      (function (SoundName) {
-          SoundName["Incoming"] = "incoming";
-          SoundName["Outgoing"] = "outgoing";
-          SoundName["Disconnect"] = "disconnect";
-          SoundName["Dtmf0"] = "dtmf0";
-          SoundName["Dtmf1"] = "dtmf1";
-          SoundName["Dtmf2"] = "dtmf2";
-          SoundName["Dtmf3"] = "dtmf3";
-          SoundName["Dtmf4"] = "dtmf4";
-          SoundName["Dtmf5"] = "dtmf5";
-          SoundName["Dtmf6"] = "dtmf6";
-          SoundName["Dtmf7"] = "dtmf7";
-          SoundName["Dtmf8"] = "dtmf8";
-          SoundName["Dtmf9"] = "dtmf9";
-          SoundName["DtmfS"] = "dtmfs";
-          SoundName["DtmfH"] = "dtmfh";
-      })(SoundName = Device.SoundName || (Device.SoundName = {}));
-  })(Device || (Device = {}));
   exports.default = Device;
   
   },{"./audiohelper":4,"./connection":5,"./constants":6,"./dialtonePlayer":8,"./eventpublisher":9,"./pstream":12,"./regions":13,"./rtc":16,"./rtc/getusermedia":15,"./sound":27,"./tslog":28,"./util":29,"events":42}],8:[function(require,module,exports){
   "use strict";
-  /**
-   * @module Tools
-   * @internalapi
-   */
   Object.defineProperty(exports, "__esModule", { value: true });
   /**
    * A Map of DTMF Sound Names to their mock frequency pairs.
@@ -2579,6 +2474,10 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
       dtmfh: [1480, 960],
       dtmfs: [1230, 960],
   };
+  /**
+   * @module Tools
+   * @internalapi
+   */
   var DialtonePlayer = /** @class */ (function () {
       function DialtonePlayer(_context) {
           var _this = this;
@@ -2630,10 +2529,7 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
   exports.default = DialtonePlayer;
   
   },{}],9:[function(require,module,exports){
-  'use strict';
-  
   var request = require('./request');
-  
   /**
    * Builds Endpoint Analytics (EA) event payloads and sends them to
    *   the EA server.
@@ -2646,67 +2542,49 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
    *   to the server. Currently ignores the request altogether, in the future this
    *   may store them in case publishing is re-enabled later. Defaults to true.
    */ /**
-      * @typedef {Object} EventPublisher.Options
-      * @property {String} [host='eventgw.twilio.com'] - The host address of the EA
-      *   server to publish to.
-      * @property {Object|Function} [defaultPayload] - A default payload to extend
-      *   when creating and sending event payloads. Also takes a function that
-      *   should return an object representing the default payload. This is
-      *   useful for fields that should always be present when they are
-      *   available, but are not always available.
-      */
+  * @typedef {Object} EventPublisher.Options
+  * @property {String} [host='eventgw.twilio.com'] - The host address of the EA
+  *   server to publish to.
+  * @property {Object|Function} [defaultPayload] - A default payload to extend
+  *   when creating and sending event payloads. Also takes a function that
+  *   should return an object representing the default payload. This is
+  *   useful for fields that should always be present when they are
+  *   available, but are not always available.
+  */
   function EventPublisher(productName, token, options) {
-    if (!(this instanceof EventPublisher)) {
-      return new EventPublisher(productName, token, options);
-    }
-  
-    // Apply default options
-    options = Object.assign({
-      defaultPayload: function defaultPayload() {
-        return {};
-      },
-  
-      host: 'eventgw.twilio.com'
-    }, options);
-  
-    var defaultPayload = options.defaultPayload;
-  
-    if (typeof defaultPayload !== 'function') {
-      defaultPayload = function defaultPayload() {
-        return Object.assign({}, options.defaultPayload);
-      };
-    }
-  
-    var isEnabled = true;
-    Object.defineProperties(this, {
-      _defaultPayload: { value: defaultPayload },
-      _isEnabled: {
-        get: function get() {
-          return isEnabled;
-        },
-        set: function set(_isEnabled) {
-          isEnabled = _isEnabled;
-        }
-      },
-      _host: { value: options.host },
-      _request: { value: options.request || request, writable: true },
-      _token: { value: token, writable: true },
-      isEnabled: {
-        enumerable: true,
-        get: function get() {
-          return isEnabled;
-        }
-      },
-      productName: { enumerable: true, value: productName },
-      token: {
-        enumerable: true,
-        get: function get() {
-          return this._token;
-        }
+      if (!(this instanceof EventPublisher)) {
+          return new EventPublisher(productName, token, options);
       }
-    });
+      // Apply default options
+      options = Object.assign({
+          defaultPayload: function () { return {}; },
+          host: 'eventgw.twilio.com'
+      }, options);
+      var defaultPayload = options.defaultPayload;
+      if (typeof defaultPayload !== 'function') {
+          defaultPayload = function () { return Object.assign({}, options.defaultPayload); };
+      }
+      var isEnabled = true;
+      Object.defineProperties(this, {
+          _defaultPayload: { value: defaultPayload },
+          _isEnabled: {
+              get: function () { return isEnabled; },
+              set: function (_isEnabled) { isEnabled = _isEnabled; }
+          },
+          _host: { value: options.host },
+          _request: { value: options.request || request, writable: true },
+          _token: { value: token, writable: true },
+          isEnabled: {
+              enumerable: true,
+              get: function () { return isEnabled; }
+          },
+          productName: { enumerable: true, value: productName },
+          token: {
+              enumerable: true,
+              get: function () { return this._token; }
+          }
+      });
   }
-  
   /**
    * Post to an EA server.
    * @private
@@ -2722,48 +2600,45 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
    * @returns {Promise} Fulfilled if the HTTP response is 20x.
    */
   EventPublisher.prototype._post = function _post(endpointName, level, group, name, payload, connection, force) {
-    if (!this.isEnabled && !force) {
-      return Promise.resolve();
-    }
-  
-    if (!connection || (!connection.parameters || !connection.parameters.CallSid) && !connection.outboundConnectionId) {
-      return Promise.resolve();
-    }
-  
-    var event = {
-      /* eslint-disable camelcase */
-      publisher: this.productName,
-      group: group,
-      name: name,
-      timestamp: new Date().toISOString(),
-      level: level.toUpperCase(),
-      payload_type: 'application/json',
-      private: false,
-      payload: payload && payload.forEach ? payload.slice(0) : Object.assign(this._defaultPayload(connection), payload)
-      /* eslint-enable camelcase */
-    };
-  
-    var requestParams = {
-      url: 'https://' + this._host + '/v4/' + endpointName,
-      body: event,
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Twilio-Token': this.token
+      if (!this.isEnabled && !force) {
+          return Promise.resolve();
       }
-    };
-  
-    var self = this;
-    return new Promise(function (resolve, reject) {
-      self._request.post(requestParams, function (err) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
+      if (!connection || ((!connection.parameters || !connection.parameters.CallSid) && !connection.outboundConnectionId)) {
+          return Promise.resolve();
+      }
+      var event = {
+          /* eslint-disable camelcase */
+          publisher: this.productName,
+          group: group,
+          name: name,
+          timestamp: (new Date()).toISOString(),
+          level: level.toUpperCase(),
+          payload_type: 'application/json',
+          private: false,
+          payload: (payload && payload.forEach) ?
+              payload.slice(0) : Object.assign(this._defaultPayload(connection), payload)
+          /* eslint-enable camelcase */
+      };
+      var requestParams = {
+          url: "https://" + this._host + "/v4/" + endpointName,
+          body: event,
+          headers: {
+              'Content-Type': 'application/json',
+              'X-Twilio-Token': this.token
+          }
+      };
+      var self = this;
+      return new Promise(function (resolve, reject) {
+          self._request.post(requestParams, function (err) {
+              if (err) {
+                  reject(err);
+              }
+              else {
+                  resolve();
+              }
+          });
       });
-    });
   };
-  
   /**
    * Post an event to the EA server. Use this method when the level
    *  is dynamic. Otherwise, it's better practice to use the sugar
@@ -2777,9 +2652,8 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
    * @returns {Promise} Fulfilled if the HTTP response is 20x.
    */
   EventPublisher.prototype.post = function post(level, group, name, payload, connection, force) {
-    return this._post('EndpointEvents', level, group, name, payload, connection, force);
+      return this._post('EndpointEvents', level, group, name, payload, connection, force);
   };
-  
   /**
    * Post a debug-level event to the EA server.
    * @param {String} group - The name of the group the event belongs to.
@@ -2790,9 +2664,8 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
    * @returns {Promise} Fulfilled if the HTTP response is 20x.
    */
   EventPublisher.prototype.debug = function debug(group, name, payload, connection) {
-    return this.post('debug', group, name, payload, connection);
+      return this.post('debug', group, name, payload, connection);
   };
-  
   /**
    * Post an info-level event to the EA server.
    * @param {String} group - The name of the group the event belongs to.
@@ -2803,9 +2676,8 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
    * @returns {Promise} Fulfilled if the HTTP response is 20x.
    */
   EventPublisher.prototype.info = function info(group, name, payload, connection) {
-    return this.post('info', group, name, payload, connection);
+      return this.post('info', group, name, payload, connection);
   };
-  
   /**
    * Post a warning-level event to the EA server.
    * @param {String} group - The name of the group the event belongs to.
@@ -2816,9 +2688,8 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
    * @returns {Promise} Fulfilled if the HTTP response is 20x.
    */
   EventPublisher.prototype.warn = function warn(group, name, payload, connection) {
-    return this.post('warning', group, name, payload, connection);
+      return this.post('warning', group, name, payload, connection);
   };
-  
   /**
    * Post an error-level event to the EA server.
    * @param {String} group - The name of the group the event belongs to.
@@ -2829,9 +2700,8 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
    * @returns {Promise} Fulfilled if the HTTP response is 20x.
    */
   EventPublisher.prototype.error = function error(group, name, payload, connection) {
-    return this.post('error', group, name, payload, connection);
+      return this.post('error', group, name, payload, connection);
   };
-  
   /**
    * Post a metrics event to the EA server.
    * @param {String} group - The name of the group the event belongs to.
@@ -2841,64 +2711,59 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
    * @returns {Promise} Fulfilled if the HTTP response is 20x.
    */
   EventPublisher.prototype.postMetrics = function postMetrics(group, name, metrics, customFields, connection) {
-    var _this = this;
-  
-    return new Promise(function (resolve) {
-      var samples = metrics.map(formatMetric).map(function (sample) {
-        return Object.assign(sample, customFields);
+      var _this = this;
+      return new Promise(function (resolve) {
+          var samples = metrics
+              .map(formatMetric)
+              .map(function (sample) { return Object.assign(sample, customFields); });
+          resolve(_this._post('EndpointMetrics', 'info', group, name, samples, connection));
       });
-  
-      resolve(_this._post('EndpointMetrics', 'info', group, name, samples, connection));
-    });
   };
-  
   /**
    * Update the token to use to authenticate requests.
    * @param {string} token
    * @returns {void}
    */
   EventPublisher.prototype.setToken = function setToken(token) {
-    this._token = token;
+      this._token = token;
   };
-  
   /**
    * Enable the publishing of events.
    */
   EventPublisher.prototype.enable = function enable() {
-    this._isEnabled = true;
+      this._isEnabled = true;
   };
-  
   /**
    * Disable the publishing of events.
    */
   EventPublisher.prototype.disable = function disable() {
-    this._isEnabled = false;
+      this._isEnabled = false;
   };
-  
   function formatMetric(sample) {
-    return {
-      /* eslint-disable camelcase */
-      timestamp: new Date(sample.timestamp).toISOString(),
-      total_packets_received: sample.totals.packetsReceived,
-      total_packets_lost: sample.totals.packetsLost,
-      total_packets_sent: sample.totals.packetsSent,
-      total_bytes_received: sample.totals.bytesReceived,
-      total_bytes_sent: sample.totals.bytesSent,
-      packets_received: sample.packetsReceived,
-      packets_lost: sample.packetsLost,
-      packets_lost_fraction: sample.packetsLostFraction && Math.round(sample.packetsLostFraction * 100) / 100,
-      audio_level_in: sample.audioInputLevel,
-      audio_level_out: sample.audioOutputLevel,
-      call_volume_input: sample.inputVolume,
-      call_volume_output: sample.outputVolume,
-      jitter: sample.jitter,
-      rtt: sample.rtt,
-      mos: sample.mos && Math.round(sample.mos * 100) / 100
-      /* eslint-enable camelcase */
-    };
+      return {
+          /* eslint-disable camelcase */
+          timestamp: (new Date(sample.timestamp)).toISOString(),
+          total_packets_received: sample.totals.packetsReceived,
+          total_packets_lost: sample.totals.packetsLost,
+          total_packets_sent: sample.totals.packetsSent,
+          total_bytes_received: sample.totals.bytesReceived,
+          total_bytes_sent: sample.totals.bytesSent,
+          packets_received: sample.packetsReceived,
+          packets_lost: sample.packetsLost,
+          packets_lost_fraction: sample.packetsLostFraction &&
+              (Math.round(sample.packetsLostFraction * 100) / 100),
+          audio_level_in: sample.audioInputLevel,
+          audio_level_out: sample.audioOutputLevel,
+          call_volume_input: sample.inputVolume,
+          call_volume_output: sample.outputVolume,
+          jitter: sample.jitter,
+          rtt: sample.rtt,
+          mos: sample.mos && (Math.round(sample.mos * 100) / 100)
+          /* eslint-enable camelcase */
+      };
   }
-  
   module.exports = EventPublisher;
+  
   },{"./request":14}],10:[function(require,module,exports){
   /**
    * Bestow logging powers.
@@ -2995,19 +2860,12 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
   },{}],11:[function(require,module,exports){
   "use strict";
   Object.defineProperty(exports, "__esModule", { value: true });
-  /**
-   * @module Voice
-   */
   var constants_1 = require("./constants");
   var DEFAULT_TEST_SOUND_URL = constants_1.SOUNDS_BASE_URL + "/outgoing.mp3";
   /**
    * A smart collection containing a Set of active output devices.
-   * @publicapi
    */
   var OutputDeviceCollection = /** @class */ (function () {
-      /**
-       * @private
-       */
       function OutputDeviceCollection(_name, _availableDevices, _beforeChange, _isSupported) {
           this._name = _name;
           this._availableDevices = _availableDevices;
@@ -3092,13 +2950,8 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
               return Promise.reject(new Error('No active output devices to test'));
           }
           return Promise.all(Array.from(this._activeDevices).map(function (device) {
-              var el;
-              // (rrowland) We need to wait for the oncanplay event because of a regression introduced
-              // in Chrome M72: https://bugs.chromium.org/p/chromium/issues/detail?id=930876
-              return new Promise(function (resolve) {
-                  el = new Audio(soundUrl);
-                  el.oncanplay = resolve;
-              }).then(function () { return el.setSinkId(device.deviceId).then(function () { return el.play(); }); });
+              var el = new Audio(soundUrl);
+              return el.setSinkId(device.deviceId).then(function () { return el.play(); });
           }));
       };
       return OutputDeviceCollection;
@@ -3125,7 +2978,6 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
    * @param {string} token The Twilio capabilities JWT
    * @param {string} uri The PStream endpoint URI
    * @param {object} [options]
-   * @config {boolean} [options.backoffMaxMs=20000] Enable debugging
    * @config {boolean} [options.debug=false] Enable debugging
    */
   function PStream(token, uri, options) {
@@ -3184,7 +3036,6 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
           self._destroy();
       });
       this.transport = new this.options.TransportFactory(this.uri, {
-          backoffMaxMs: this.options.backoffMaxMs,
           logLevel: this.options.debug ? 'debug' : 'off'
       });
       this.transport.on('close', this._handleTransportClose);
@@ -3286,14 +3137,9 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
   },{"./constants":6,"./log":10,"./wstransport":30,"events":42,"util":53}],13:[function(require,module,exports){
   "use strict";
   Object.defineProperty(exports, "__esModule", { value: true });
-  /**
-   * @module Voice
-   * This module describes valid and deprecated regions.
-   */
   var util_1 = require("./util");
   /**
    * Valid deprecated regions
-   * @private
    */
   var DeprecatedRegion;
   (function (DeprecatedRegion) {
@@ -3340,7 +3186,6 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
       _a);
   /**
    * Region shortcodes. Maps the full region name from AWS to the Twilio shortcode.
-   * @private
    */
   exports.regionShortcodes = {
       ASIAPAC_SINGAPORE: Region.Sg1,
@@ -3354,7 +3199,6 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
   };
   /**
    * Region URIs. Maps the Twilio shortcode to its Twilio endpoint URI.
-   * @private
    */
   var regionURIs = (_b = {},
       _b[Region.Au1] = 'chunderw-vpc-gll-au1.twilio.com',
@@ -3375,7 +3219,6 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
       _b);
   /**
    * Get the URI associated with the passed shortcode.
-   * @private
    * @param region - The region shortcode. Defaults to gll.
    * @param [onDeprecated] - A callback containing the new region to be called when the passed region
    *   is deprecated.
@@ -3397,7 +3240,6 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
   exports.getRegionURI = getRegionURI;
   /**
    * Get the region shortcode by its full AWS region string.
-   * @private
    * @param region - The region's full AWS string.
    */
   function getRegionShortcode(region) {
@@ -3407,34 +3249,26 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
   var _a, _b;
   
   },{"./util":29}],14:[function(require,module,exports){
-  'use strict';
-  
   var XHR = require('xmlhttprequest').XMLHttpRequest;
-  
   function request(method, params, callback) {
-    var options = {};
-    options.XMLHttpRequest = options.XMLHttpRequest || XHR;
-    var xhr = new options.XMLHttpRequest();
-  
-    xhr.open(method, params.url, true);
-    xhr.onreadystatechange = function onreadystatechange() {
-      if (xhr.readyState !== 4) {
-        return;
+      var options = {};
+      options.XMLHttpRequest = options.XMLHttpRequest || XHR;
+      var xhr = new options.XMLHttpRequest();
+      xhr.open(method, params.url, true);
+      xhr.onreadystatechange = function onreadystatechange() {
+          if (xhr.readyState !== 4) {
+              return;
+          }
+          if (200 <= xhr.status && xhr.status < 300) {
+              callback(null, xhr.responseText);
+              return;
+          }
+          callback(new Error(xhr.responseText));
+      };
+      for (var headerName in params.headers) {
+          xhr.setRequestHeader(headerName, params.headers[headerName]);
       }
-  
-      if (200 <= xhr.status && xhr.status < 300) {
-        callback(null, xhr.responseText);
-        return;
-      }
-  
-      callback(new Error(xhr.responseText));
-    };
-  
-    for (var headerName in params.headers) {
-      xhr.setRequestHeader(headerName, params.headers[headerName]);
-    }
-  
-    xhr.send(JSON.stringify(params.body));
+      xhr.send(JSON.stringify(params.body));
   }
   /**
    * Use XMLHttpRequest to get a network resource.
@@ -3446,98 +3280,83 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
    * @returns {response}
    **/
   var Request = request;
-  
   /**
    * Sugar function for request('GET', params, callback);
    * @param {Object} params - Request parameters
    * @param {Request~get} callback - The callback that handles the response.
    */
   Request.get = function get(params, callback) {
-    return new this('GET', params, callback);
+      return new this('GET', params, callback);
   };
-  
   /**
    * Sugar function for request('POST', params, callback);
    * @param {Object} params - Request parameters
    * @param {Request~post} callback - The callback that handles the response.
    */
   Request.post = function post(params, callback) {
-    return new this('POST', params, callback);
+      return new this('POST', params, callback);
   };
-  
   module.exports = Request;
+  
   },{"xmlhttprequest":2}],15:[function(require,module,exports){
-  'use strict';
-  
-  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-  
   var util = require('../util');
-  
   function getUserMedia(constraints, options) {
-    options = options || {};
-    options.util = options.util || util;
-    options.navigator = options.navigator || (typeof navigator !== 'undefined' ? navigator : null);
-  
-    return new Promise(function (resolve, reject) {
-      if (!options.navigator) {
-        throw new Error('getUserMedia is not supported');
-      }
-  
-      switch ('function') {
-        case _typeof(options.navigator.mediaDevices && options.navigator.mediaDevices.getUserMedia):
-          return resolve(options.navigator.mediaDevices.getUserMedia(constraints));
-        case _typeof(options.navigator.webkitGetUserMedia):
-          return options.navigator.webkitGetUserMedia(constraints, resolve, reject);
-        case _typeof(options.navigator.mozGetUserMedia):
-          return options.navigator.mozGetUserMedia(constraints, resolve, reject);
-        case _typeof(options.navigator.getUserMedia):
-          return options.navigator.getUserMedia(constraints, resolve, reject);
-        default:
-          throw new Error('getUserMedia is not supported');
-      }
-    }).catch(function (e) {
-      throw options.util.isFirefox() && e.name === 'NotReadableError' ? new Error('Firefox does not currently support opening multiple audio input tracks' + 'simultaneously, even across different tabs.\n' + 'Related Bugzilla thread: https://bugzilla.mozilla.org/show_bug.cgi?id=1299324') : e;
-    });
+      options = options || {};
+      options.util = options.util || util;
+      options.navigator = options.navigator
+          || (typeof navigator !== 'undefined' ? navigator : null);
+      return new Promise(function (resolve, reject) {
+          if (!options.navigator) {
+              throw new Error('getUserMedia is not supported');
+          }
+          switch ('function') {
+              case typeof (options.navigator.mediaDevices && options.navigator.mediaDevices.getUserMedia):
+                  return resolve(options.navigator.mediaDevices.getUserMedia(constraints));
+              case typeof options.navigator.webkitGetUserMedia:
+                  return options.navigator.webkitGetUserMedia(constraints, resolve, reject);
+              case typeof options.navigator.mozGetUserMedia:
+                  return options.navigator.mozGetUserMedia(constraints, resolve, reject);
+              case typeof options.navigator.getUserMedia:
+                  return options.navigator.getUserMedia(constraints, resolve, reject);
+              default:
+                  throw new Error('getUserMedia is not supported');
+          }
+      }).catch(function (e) {
+          throw (options.util.isFirefox() && e.name === 'NotReadableError')
+              ? new Error('Firefox does not currently support opening multiple audio input tracks' +
+                  'simultaneously, even across different tabs.\n' +
+                  'Related Bugzilla thread: https://bugzilla.mozilla.org/show_bug.cgi?id=1299324')
+              : e;
+      });
   }
-  
   module.exports = getUserMedia;
+  
   },{"../util":29}],16:[function(require,module,exports){
-  'use strict';
-  
   var PeerConnection = require('./peerconnection');
-  
-  var _require = require('./rtcpc'),
-      test = _require.test;
-  
+  var test = require('./rtcpc').test;
   function enabled() {
-    return test();
+      return test();
   }
-  
   function getMediaEngine() {
-    return typeof RTCIceGatherer !== 'undefined' ? 'ORTC' : 'WebRTC';
+      return typeof RTCIceGatherer !== 'undefined' ? 'ORTC' : 'WebRTC';
   }
-  
   module.exports = {
-    enabled: enabled,
-    getMediaEngine: getMediaEngine,
-    PeerConnection: PeerConnection
+      enabled: enabled,
+      getMediaEngine: getMediaEngine,
+      PeerConnection: PeerConnection
   };
-  },{"./peerconnection":20,"./rtcpc":21}],17:[function(require,module,exports){
-  'use strict';
   
+  },{"./peerconnection":20,"./rtcpc":21}],17:[function(require,module,exports){
   /**
    * This file was imported from another project. If making changes to this file, please don't
    * make them here. Make them on the linked repo below, then copy back:
    * https://code.hq.twilio.com/client/MockRTCStatsReport
    */
-  
   /* eslint-disable no-undefined */
-  
   // The legacy max volume, which is the positive half of a signed short integer.
   var OLD_MAX_VOLUME = 32767;
-  
-  var NativeRTCStatsReport = typeof window !== 'undefined' ? window.RTCStatsReport : undefined;
-  
+  var NativeRTCStatsReport = typeof window !== 'undefined'
+      ? window.RTCStatsReport : undefined;
   /**
    * Create a MockRTCStatsReport wrapper around a Map of RTCStats objects. If RTCStatsReport is available
    *   natively, it will be inherited so that instanceof checks pass.
@@ -3547,51 +3366,48 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
    *   with a MockRTCStatsReport object.
    */
   function MockRTCStatsReport(statsMap) {
-    if (!(this instanceof MockRTCStatsReport)) {
-      return new MockRTCStatsReport(statsMap);
-    }
-  
-    var self = this;
-    Object.defineProperties(this, {
-      size: {
-        enumerable: true,
-        get: function get() {
-          return self._map.size;
-        }
-      },
-      _map: { value: statsMap }
-    });
-  
-    this[Symbol.iterator] = statsMap[Symbol.iterator];
+      if (!(this instanceof MockRTCStatsReport)) {
+          return new MockRTCStatsReport(statsMap);
+      }
+      var self = this;
+      Object.defineProperties(this, {
+          size: {
+              enumerable: true,
+              get: function () {
+                  return self._map.size;
+              }
+          },
+          _map: { value: statsMap }
+      });
+      this[Symbol.iterator] = statsMap[Symbol.iterator];
   }
-  
   // If RTCStatsReport is available natively, inherit it. Keep our constructor.
   if (NativeRTCStatsReport) {
-    MockRTCStatsReport.prototype = Object.create(NativeRTCStatsReport.prototype);
-    MockRTCStatsReport.prototype.constructor = MockRTCStatsReport;
+      MockRTCStatsReport.prototype = Object.create(NativeRTCStatsReport.prototype);
+      MockRTCStatsReport.prototype.constructor = MockRTCStatsReport;
   }
-  
   // Map the Map-like read methods to the underlying Map
   ['entries', 'forEach', 'get', 'has', 'keys', 'values'].forEach(function (key) {
-    MockRTCStatsReport.prototype[key] = function () {
-      var _map;
-  
-      return (_map = this._map)[key].apply(_map, arguments);
-    };
+      MockRTCStatsReport.prototype[key] = function () {
+          var args = [];
+          for (var _i = 0; _i < arguments.length; _i++) {
+              args[_i] = arguments[_i];
+          }
+          return (_a = this._map)[key].apply(_a, args);
+          var _a;
+      };
   });
-  
   /**
    * Convert an array of RTCStats objects into a mock RTCStatsReport object.
    * @param {Array<RTCStats>}
    * @return {MockRTCStatsReport}
    */
   MockRTCStatsReport.fromArray = function fromArray(array) {
-    return new MockRTCStatsReport(array.reduce(function (map, rtcStats) {
-      map.set(rtcStats.id, rtcStats);
-      return map;
-    }, new Map()));
+      return new MockRTCStatsReport(array.reduce(function (map, rtcStats) {
+          map.set(rtcStats.id, rtcStats);
+          return map;
+      }, new Map()));
   };
-  
   /**
    * Convert a legacy RTCStatsResponse object into a mock RTCStatsReport object.
    * @param {RTCStatsResponse} statsResponse - An RTCStatsResponse object returned by the
@@ -3599,363 +3415,354 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
    * @return {MockRTCStatsReport} A mock RTCStatsReport object.
    */
   MockRTCStatsReport.fromRTCStatsResponse = function fromRTCStatsResponse(statsResponse) {
-    var activeCandidatePairId = void 0;
-    var transportIds = new Map();
-  
-    var statsMap = statsResponse.result().reduce(function (map, report) {
-      var id = report.id;
-      switch (report.type) {
-        case 'googCertificate':
-          map.set(id, createRTCCertificateStats(report));
-          break;
-        case 'datachannel':
-          map.set(id, createRTCDataChannelStats(report));
-          break;
-        case 'googCandidatePair':
-          if (getBoolean(report, 'googActiveConnection')) {
-            activeCandidatePairId = id;
+      var activeCandidatePairId;
+      var transportIds = new Map();
+      var statsMap = statsResponse.result().reduce(function (map, report) {
+          var id = report.id;
+          switch (report.type) {
+              case 'googCertificate':
+                  map.set(id, createRTCCertificateStats(report));
+                  break;
+              case 'datachannel':
+                  map.set(id, createRTCDataChannelStats(report));
+                  break;
+              case 'googCandidatePair':
+                  if (getBoolean(report, 'googActiveConnection')) {
+                      activeCandidatePairId = id;
+                  }
+                  map.set(id, createRTCIceCandidatePairStats(report));
+                  break;
+              case 'localcandidate':
+                  map.set(id, createRTCIceCandidateStats(report, false));
+                  break;
+              case 'remotecandidate':
+                  map.set(id, createRTCIceCandidateStats(report, true));
+                  break;
+              case 'ssrc':
+                  if (isPresent(report, 'packetsReceived')) {
+                      map.set("rtp-" + id, createRTCInboundRTPStreamStats(report));
+                  }
+                  else {
+                      map.set("rtp-" + id, createRTCOutboundRTPStreamStats(report));
+                  }
+                  map.set("track-" + id, createRTCMediaStreamTrackStats(report));
+                  map.set("codec-" + id, createRTCCodecStats(report));
+                  break;
+              case 'googComponent':
+                  var transportReport = createRTCTransportStats(report);
+                  transportIds.set(transportReport.selectedCandidatePairId, id);
+                  map.set(id, createRTCTransportStats(report));
+                  break;
           }
-  
-          map.set(id, createRTCIceCandidatePairStats(report));
-          break;
-        case 'localcandidate':
-          map.set(id, createRTCIceCandidateStats(report, false));
-          break;
-        case 'remotecandidate':
-          map.set(id, createRTCIceCandidateStats(report, true));
-          break;
-        case 'ssrc':
-          if (isPresent(report, 'packetsReceived')) {
-            map.set('rtp-' + id, createRTCInboundRTPStreamStats(report));
-          } else {
-            map.set('rtp-' + id, createRTCOutboundRTPStreamStats(report));
+          return map;
+      }, new Map());
+      if (activeCandidatePairId) {
+          var activeTransportId = transportIds.get(activeCandidatePairId);
+          if (activeTransportId) {
+              statsMap.get(activeTransportId).dtlsState = 'connected';
           }
-  
-          map.set('track-' + id, createRTCMediaStreamTrackStats(report));
-          map.set('codec-' + id, createRTCCodecStats(report));
-          break;
-        case 'googComponent':
-          var transportReport = createRTCTransportStats(report);
-          transportIds.set(transportReport.selectedCandidatePairId, id);
-          map.set(id, createRTCTransportStats(report));
-          break;
       }
-  
-      return map;
-    }, new Map());
-  
-    if (activeCandidatePairId) {
-      var activeTransportId = transportIds.get(activeCandidatePairId);
-      if (activeTransportId) {
-        statsMap.get(activeTransportId).dtlsState = 'connected';
-      }
-    }
-  
-    return new MockRTCStatsReport(statsMap);
+      return new MockRTCStatsReport(statsMap);
   };
-  
   /**
    * @param {RTCLegacyStatsReport} report
    * @returns {RTCTransportStats}
    */
   function createRTCTransportStats(report) {
-    return {
-      type: 'transport',
-      id: report.id,
-      timestamp: Date.parse(report.timestamp),
-      bytesSent: undefined,
-      bytesReceived: undefined,
-      rtcpTransportStatsId: undefined,
-      dtlsState: undefined,
-      selectedCandidatePairId: report.stat('selectedCandidatePairId'),
-      localCertificateId: report.stat('localCertificateId'),
-      remoteCertificateId: report.stat('remoteCertificateId')
-    };
+      return {
+          type: 'transport',
+          id: report.id,
+          timestamp: Date.parse(report.timestamp),
+          bytesSent: undefined,
+          bytesReceived: undefined,
+          rtcpTransportStatsId: undefined,
+          dtlsState: undefined,
+          selectedCandidatePairId: report.stat('selectedCandidatePairId'),
+          localCertificateId: report.stat('localCertificateId'),
+          remoteCertificateId: report.stat('remoteCertificateId')
+      };
   }
-  
   /**
    * @param {RTCLegacyStatsReport} report
    * @returns {RTCCodecStats}
    */
   function createRTCCodecStats(report) {
-    return {
-      type: 'codec',
-      id: report.id,
-      timestamp: Date.parse(report.timestamp),
-      payloadType: undefined,
-      mimeType: report.stat('mediaType') + '/' + report.stat('googCodecName'),
-      clockRate: undefined,
-      channels: undefined,
-      sdpFmtpLine: undefined,
-      implementation: undefined
-    };
+      return {
+          type: 'codec',
+          id: report.id,
+          timestamp: Date.parse(report.timestamp),
+          payloadType: undefined,
+          mimeType: report.stat('mediaType') + "/" + report.stat('googCodecName'),
+          clockRate: undefined,
+          channels: undefined,
+          sdpFmtpLine: undefined,
+          implementation: undefined
+      };
   }
-  
   /**
    * @param {RTCLegacyStatsReport} report
    * @returns {RTCMediaStreamTrackStats}
    */
   function createRTCMediaStreamTrackStats(report) {
-    return {
-      type: 'track',
-      id: report.id,
-      timestamp: Date.parse(report.timestamp),
-      trackIdentifier: report.stat('googTrackId'),
-      remoteSource: undefined,
-      ended: undefined,
-      kind: report.stat('mediaType'),
-      detached: undefined,
-      ssrcIds: undefined,
-      frameWidth: isPresent(report, 'googFrameWidthReceived') ? getInt(report, 'googFrameWidthReceived') : getInt(report, 'googFrameWidthSent'),
-      frameHeight: isPresent(report, 'googFrameHeightReceived') ? getInt(report, 'googFrameHeightReceived') : getInt(report, 'googFrameHeightSent'),
-      framesPerSecond: undefined,
-      framesSent: getInt(report, 'framesEncoded'),
-      framesReceived: undefined,
-      framesDecoded: getInt(report, 'framesDecoded'),
-      framesDropped: undefined,
-      framesCorrupted: undefined,
-      partialFramesLost: undefined,
-      fullFramesLost: undefined,
-      audioLevel: isPresent(report, 'audioOutputLevel') ? getInt(report, 'audioOutputLevel') / OLD_MAX_VOLUME : (getInt(report, 'audioInputLevel') || 0) / OLD_MAX_VOLUME,
-      echoReturnLoss: getFloat(report, 'googEchoCancellationReturnLoss'),
-      echoReturnLossEnhancement: getFloat(report, 'googEchoCancellationReturnLossEnhancement')
-    };
+      return {
+          type: 'track',
+          id: report.id,
+          timestamp: Date.parse(report.timestamp),
+          trackIdentifier: report.stat('googTrackId'),
+          remoteSource: undefined,
+          ended: undefined,
+          kind: report.stat('mediaType'),
+          detached: undefined,
+          ssrcIds: undefined,
+          frameWidth: isPresent(report, 'googFrameWidthReceived')
+              ? getInt(report, 'googFrameWidthReceived')
+              : getInt(report, 'googFrameWidthSent'),
+          frameHeight: isPresent(report, 'googFrameHeightReceived')
+              ? getInt(report, 'googFrameHeightReceived')
+              : getInt(report, 'googFrameHeightSent'),
+          framesPerSecond: undefined,
+          framesSent: getInt(report, 'framesEncoded'),
+          framesReceived: undefined,
+          framesDecoded: getInt(report, 'framesDecoded'),
+          framesDropped: undefined,
+          framesCorrupted: undefined,
+          partialFramesLost: undefined,
+          fullFramesLost: undefined,
+          audioLevel: isPresent(report, 'audioOutputLevel')
+              ? getInt(report, 'audioOutputLevel') / OLD_MAX_VOLUME
+              : (getInt(report, 'audioInputLevel') || 0) / OLD_MAX_VOLUME,
+          echoReturnLoss: getFloat(report, 'googEchoCancellationReturnLoss'),
+          echoReturnLossEnhancement: getFloat(report, 'googEchoCancellationReturnLossEnhancement')
+      };
   }
-  
   /**
    * @param {RTCLegacyStatsReport} report
    * @param {boolean} isInbound - Whether to create an inbound stats object, or outbound.
    * @returns {RTCRTPStreamStats}
    */
   function createRTCRTPStreamStats(report, isInbound) {
-    return {
-      id: report.id,
-      timestamp: Date.parse(report.timestamp),
-      ssrc: report.stat('ssrc'),
-      associateStatsId: undefined,
-      isRemote: undefined,
-      mediaType: report.stat('mediaType'),
-      trackId: 'track-' + report.id,
-      transportId: report.stat('transportId'),
-      codecId: 'codec-' + report.id,
-      firCount: isInbound ? getInt(report, 'googFirsSent') : undefined,
-      pliCount: isInbound ? getInt(report, 'googPlisSent') : getInt(report, 'googPlisReceived'),
-      nackCount: isInbound ? getInt(report, 'googNacksSent') : getInt(report, 'googNacksReceived'),
-      sliCount: undefined,
-      qpSum: getInt(report, 'qpSum')
-    };
+      return {
+          id: report.id,
+          timestamp: Date.parse(report.timestamp),
+          ssrc: report.stat('ssrc'),
+          associateStatsId: undefined,
+          isRemote: undefined,
+          mediaType: report.stat('mediaType'),
+          trackId: "track-" + report.id,
+          transportId: report.stat('transportId'),
+          codecId: "codec-" + report.id,
+          firCount: isInbound
+              ? getInt(report, 'googFirsSent')
+              : undefined,
+          pliCount: isInbound
+              ? getInt(report, 'googPlisSent')
+              : getInt(report, 'googPlisReceived'),
+          nackCount: isInbound
+              ? getInt(report, 'googNacksSent')
+              : getInt(report, 'googNacksReceived'),
+          sliCount: undefined,
+          qpSum: getInt(report, 'qpSum')
+      };
   }
-  
   /**
    * @param {RTCLegacyStatsReport} report
    * @returns {RTCInboundRTPStreamStats}
    */
   function createRTCInboundRTPStreamStats(report) {
-    var rtp = createRTCRTPStreamStats(report, true);
-  
-    Object.assign(rtp, {
-      type: 'inbound-rtp',
-      packetsReceived: getInt(report, 'packetsReceived'),
-      bytesReceived: getInt(report, 'bytesReceived'),
-      packetsLost: getInt(report, 'packetsLost'),
-      jitter: convertMsToSeconds(report.stat('googJitterReceived')),
-      fractionLost: undefined,
-      roundTripTime: convertMsToSeconds(report.stat('googRtt')),
-      packetsDiscarded: undefined,
-      packetsRepaired: undefined,
-      burstPacketsLost: undefined,
-      burstPacketsDiscarded: undefined,
-      burstLossCount: undefined,
-      burstDiscardCount: undefined,
-      burstLossRate: undefined,
-      burstDiscardRate: undefined,
-      gapLossRate: undefined,
-      gapDiscardRate: undefined,
-      framesDecoded: getInt(report, 'framesDecoded')
-    });
-  
-    return rtp;
+      var rtp = createRTCRTPStreamStats(report, true);
+      Object.assign(rtp, {
+          type: 'inbound-rtp',
+          packetsReceived: getInt(report, 'packetsReceived'),
+          bytesReceived: getInt(report, 'bytesReceived'),
+          packetsLost: getInt(report, 'packetsLost'),
+          jitter: convertMsToSeconds(report.stat('googJitterReceived')),
+          fractionLost: undefined,
+          roundTripTime: convertMsToSeconds(report.stat('googRtt')),
+          packetsDiscarded: undefined,
+          packetsRepaired: undefined,
+          burstPacketsLost: undefined,
+          burstPacketsDiscarded: undefined,
+          burstLossCount: undefined,
+          burstDiscardCount: undefined,
+          burstLossRate: undefined,
+          burstDiscardRate: undefined,
+          gapLossRate: undefined,
+          gapDiscardRate: undefined,
+          framesDecoded: getInt(report, 'framesDecoded')
+      });
+      return rtp;
   }
-  
   /**
    * @param {RTCLegacyStatsReport} report
    * @returns {RTCOutboundRTPStreamStats}
    */
   function createRTCOutboundRTPStreamStats(report) {
-    var rtp = createRTCRTPStreamStats(report, false);
-  
-    Object.assign(rtp, {
-      type: 'outbound-rtp',
-      remoteTimestamp: undefined,
-      packetsSent: getInt(report, 'packetsSent'),
-      bytesSent: getInt(report, 'bytesSent'),
-      targetBitrate: undefined,
-      framesEncoded: getInt(report, 'framesEncoded')
-    });
-  
-    return rtp;
+      var rtp = createRTCRTPStreamStats(report, false);
+      Object.assign(rtp, {
+          type: 'outbound-rtp',
+          remoteTimestamp: undefined,
+          packetsSent: getInt(report, 'packetsSent'),
+          bytesSent: getInt(report, 'bytesSent'),
+          targetBitrate: undefined,
+          framesEncoded: getInt(report, 'framesEncoded')
+      });
+      return rtp;
   }
-  
   /**
    * @param {RTCLegacyStatsReport} report
    * @param {boolean} isRemote - Whether to create for a remote candidate, or local candidate.
    * @returns {RTCIceCandidateStats}
    */
   function createRTCIceCandidateStats(report, isRemote) {
-    return {
-      type: isRemote ? 'remote-candidate' : 'local-candidate',
-      id: report.id,
-      timestamp: Date.parse(report.timestamp),
-      transportId: undefined,
-      isRemote: isRemote,
-      ip: report.stat('ipAddress'),
-      port: getInt(report, 'portNumber'),
-      protocol: report.stat('transport'),
-      candidateType: translateCandidateType(report.stat('candidateType')),
-      priority: getFloat(report, 'priority'),
-      url: undefined,
-      relayProtocol: undefined,
-      deleted: undefined
-    };
+      return {
+          type: isRemote
+              ? 'remote-candidate'
+              : 'local-candidate',
+          id: report.id,
+          timestamp: Date.parse(report.timestamp),
+          transportId: undefined,
+          isRemote: isRemote,
+          ip: report.stat('ipAddress'),
+          port: getInt(report, 'portNumber'),
+          protocol: report.stat('transport'),
+          candidateType: translateCandidateType(report.stat('candidateType')),
+          priority: getFloat(report, 'priority'),
+          url: undefined,
+          relayProtocol: undefined,
+          deleted: undefined
+      };
   }
-  
   /**
    * @param {RTCLegacyStatsReport} report
    * @returns {RTCIceCandidatePairStats}
    */
   function createRTCIceCandidatePairStats(report) {
-    return {
-      type: 'candidate-pair',
-      id: report.id,
-      timestamp: Date.parse(report.timestamp),
-      transportId: report.stat('googChannelId'),
-      localCandidateId: report.stat('localCandidateId'),
-      remoteCandidateId: report.stat('remoteCandidateId'),
-      state: undefined,
-      priority: undefined,
-      nominated: undefined,
-      writable: getBoolean(report, 'googWritable'),
-      readable: undefined,
-      bytesSent: getInt(report, 'bytesSent'),
-      bytesReceived: getInt(report, 'bytesReceived'),
-      lastPacketSentTimestamp: undefined,
-      lastPacketReceivedTimestamp: undefined,
-      totalRoundTripTime: undefined,
-      currentRoundTripTime: convertMsToSeconds(report.stat('googRtt')),
-      availableOutgoingBitrate: undefined,
-      availableIncomingBitrate: undefined,
-      requestsReceived: getInt(report, 'requestsReceived'),
-      requestsSent: getInt(report, 'requestsSent'),
-      responsesReceived: getInt(report, 'responsesReceived'),
-      responsesSent: getInt(report, 'responsesSent'),
-      retransmissionsReceived: undefined,
-      retransmissionsSent: undefined,
-      consentRequestsSent: getInt(report, 'consentRequestsSent')
-    };
+      return {
+          type: 'candidate-pair',
+          id: report.id,
+          timestamp: Date.parse(report.timestamp),
+          transportId: report.stat('googChannelId'),
+          localCandidateId: report.stat('localCandidateId'),
+          remoteCandidateId: report.stat('remoteCandidateId'),
+          state: undefined,
+          priority: undefined,
+          nominated: undefined,
+          writable: getBoolean(report, 'googWritable'),
+          readable: undefined,
+          bytesSent: getInt(report, 'bytesSent'),
+          bytesReceived: getInt(report, 'bytesReceived'),
+          lastPacketSentTimestamp: undefined,
+          lastPacketReceivedTimestamp: undefined,
+          totalRoundTripTime: undefined,
+          currentRoundTripTime: convertMsToSeconds(report.stat('googRtt')),
+          availableOutgoingBitrate: undefined,
+          availableIncomingBitrate: undefined,
+          requestsReceived: getInt(report, 'requestsReceived'),
+          requestsSent: getInt(report, 'requestsSent'),
+          responsesReceived: getInt(report, 'responsesReceived'),
+          responsesSent: getInt(report, 'responsesSent'),
+          retransmissionsReceived: undefined,
+          retransmissionsSent: undefined,
+          consentRequestsSent: getInt(report, 'consentRequestsSent')
+      };
   }
-  
   /**
    * @param {RTCLegacyStatsReport} report
    * @returns {RTCIceCertificateStats}
    */
   function createRTCCertificateStats(report) {
-    return {
-      type: 'certificate',
-      id: report.id,
-      timestamp: Date.parse(report.timestamp),
-      fingerprint: report.stat('googFingerprint'),
-      fingerprintAlgorithm: report.stat('googFingerprintAlgorithm'),
-      base64Certificate: report.stat('googDerBase64'),
-      issuerCertificateId: report.stat('googIssuerId')
-    };
+      return {
+          type: 'certificate',
+          id: report.id,
+          timestamp: Date.parse(report.timestamp),
+          fingerprint: report.stat('googFingerprint'),
+          fingerprintAlgorithm: report.stat('googFingerprintAlgorithm'),
+          base64Certificate: report.stat('googDerBase64'),
+          issuerCertificateId: report.stat('googIssuerId')
+      };
   }
-  
   /**
    * @param {RTCLegacyStatsReport} report
    * @returns {RTCDataChannelStats}
    */
   function createRTCDataChannelStats(report) {
-    return {
-      type: 'data-channel',
-      id: report.id,
-      timestamp: Date.parse(report.timestamp),
-      label: report.stat('label'),
-      protocol: report.stat('protocol'),
-      datachannelid: report.stat('datachannelid'),
-      transportId: report.stat('transportId'),
-      state: report.stat('state'),
-      messagesSent: undefined,
-      bytesSent: undefined,
-      messagesReceived: undefined,
-      bytesReceived: undefined
-    };
+      return {
+          type: 'data-channel',
+          id: report.id,
+          timestamp: Date.parse(report.timestamp),
+          label: report.stat('label'),
+          protocol: report.stat('protocol'),
+          datachannelid: report.stat('datachannelid'),
+          transportId: report.stat('transportId'),
+          state: report.stat('state'),
+          messagesSent: undefined,
+          bytesSent: undefined,
+          messagesReceived: undefined,
+          bytesReceived: undefined
+      };
   }
-  
   /**
    * @param {number} inMs - A time in milliseconds
    * @returns {number} The time in seconds
    */
   function convertMsToSeconds(inMs) {
-    return isNaN(inMs) || inMs === '' ? undefined : parseInt(inMs, 10) / 1000;
+      return isNaN(inMs) || inMs === ''
+          ? undefined
+          : parseInt(inMs, 10) / 1000;
   }
-  
   /**
    * @param {string} type - A type in the legacy format
    * @returns {string} The type adjusted to new standards for known naming changes
    */
   function translateCandidateType(type) {
-    switch (type) {
-      case 'peerreflexive':
-        return 'prflx';
-      case 'serverreflexive':
-        return 'srflx';
-      case 'host':
-      case 'relay':
-      default:
-        return type;
-    }
+      switch (type) {
+          case 'peerreflexive':
+              return 'prflx';
+          case 'serverreflexive':
+              return 'srflx';
+          case 'host':
+          case 'relay':
+          default:
+              return type;
+      }
   }
-  
   function getInt(report, statName) {
-    var stat = report.stat(statName);
-    return isPresent(report, statName) ? parseInt(stat, 10) : undefined;
+      var stat = report.stat(statName);
+      return isPresent(report, statName)
+          ? parseInt(stat, 10)
+          : undefined;
   }
-  
   function getFloat(report, statName) {
-    var stat = report.stat(statName);
-    return isPresent(report, statName) ? parseFloat(stat) : undefined;
+      var stat = report.stat(statName);
+      return isPresent(report, statName)
+          ? parseFloat(stat)
+          : undefined;
   }
-  
   function getBoolean(report, statName) {
-    var stat = report.stat(statName);
-    return isPresent(report, statName) ? stat === 'true' || stat === true : undefined;
+      var stat = report.stat(statName);
+      return isPresent(report, statName)
+          ? (stat === 'true' || stat === true)
+          : undefined;
   }
-  
   function isPresent(report, statName) {
-    var stat = report.stat(statName);
-    return typeof stat !== 'undefined' && stat !== '';
+      var stat = report.stat(statName);
+      return typeof stat !== 'undefined' && stat !== '';
   }
-  
   module.exports = MockRTCStatsReport;
-  },{}],18:[function(require,module,exports){
-  'use strict';
   
+  },{}],18:[function(require,module,exports){
   var EventEmitter = require('events').EventEmitter;
   var getStatistics = require('./stats');
   var inherits = require('util').inherits;
   var Mos = require('./mos');
-  
   // How many samples we use when testing metric thresholds
   var SAMPLE_COUNT_METRICS = 5;
-  
   // How many samples that need to cross the threshold to
   // raise or clear a warning.
   var SAMPLE_COUNT_CLEAR = 0;
   var SAMPLE_COUNT_RAISE = 3;
-  
   var SAMPLE_INTERVAL = 1000;
   var WARNING_TIMEOUT = 5 * 1000;
-  
   /**
    * @typedef {Object} RTCMonitor.ThresholdOptions
    * @property {RTCMonitor.ThresholdOption} [audioInputLevel] - Rules to apply to sample.audioInputLevel
@@ -3965,58 +3772,51 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
    * @property {RTCMonitor.ThresholdOption} [rtt] - Rules to apply to sample.rtt
    * @property {RTCMonitor.ThresholdOption} [mos] - Rules to apply to sample.mos
    */ /**
-      * @typedef {Object} RTCMonitor.ThresholdOption
-      * @property {?Number} [min] - Warning will be raised if tracked metric falls below this value.
-      * @property {?Number} [max] - Warning will be raised if tracked metric rises above this value.
-      * @property {?Number} [maxDuration] - Warning will be raised if tracked metric stays constant for
-      *   the specified number of consequent samples.
-      */
+  * @typedef {Object} RTCMonitor.ThresholdOption
+  * @property {?Number} [min] - Warning will be raised if tracked metric falls below this value.
+  * @property {?Number} [max] - Warning will be raised if tracked metric rises above this value.
+  * @property {?Number} [maxDuration] - Warning will be raised if tracked metric stays constant for
+  *   the specified number of consequent samples.
+  */
   var DEFAULT_THRESHOLDS = {
-    audioInputLevel: { maxDuration: 10 },
-    audioOutputLevel: { maxDuration: 10 },
-    packetsLostFraction: { max: 1 },
-    jitter: { max: 30 },
-    rtt: { max: 400 },
-    mos: { min: 3 }
+      audioInputLevel: { maxDuration: 10 },
+      audioOutputLevel: { maxDuration: 10 },
+      packetsLostFraction: { max: 1 },
+      jitter: { max: 30 },
+      rtt: { max: 400 },
+      mos: { min: 3 }
   };
-  
   /**
    * RTCMonitor polls a peerConnection via PeerConnection.getStats
    * and emits warnings when stats cross the specified threshold values.
    * @constructor
    * @param {RTCMonitor.Options} [options] - Config options for RTCMonitor.
    */ /**
-      * @typedef {Object} RTCMonitor.Options
-      * @property {PeerConnection} [peerConnection] - The PeerConnection to monitor.
-      * @property {RTCMonitor.ThresholdOptions} [thresholds] - Optional custom threshold values.
-      */
+  * @typedef {Object} RTCMonitor.Options
+  * @property {PeerConnection} [peerConnection] - The PeerConnection to monitor.
+  * @property {RTCMonitor.ThresholdOptions} [thresholds] - Optional custom threshold values.
+  */
   function RTCMonitor(options) {
-    if (!(this instanceof RTCMonitor)) {
-      return new RTCMonitor(options);
-    }
-  
-    options = options || {};
-    var thresholds = Object.assign({}, DEFAULT_THRESHOLDS, options.thresholds);
-  
-    Object.defineProperties(this, {
-      _activeWarnings: { value: new Map() },
-      _currentStreaks: { value: new Map() },
-      _peerConnection: { value: options.peerConnection, writable: true },
-      _sampleBuffer: { value: [] },
-      _sampleInterval: { value: null, writable: true },
-      _thresholds: { value: thresholds },
-      _warningsEnabled: { value: true, writable: true }
-    });
-  
-    if (options.peerConnection) {
-      this.enable();
-    }
-  
-    EventEmitter.call(this);
+      if (!(this instanceof RTCMonitor)) {
+          return new RTCMonitor(options);
+      }
+      options = options || {};
+      var thresholds = Object.assign({}, DEFAULT_THRESHOLDS, options.thresholds);
+      Object.defineProperties(this, {
+          _activeWarnings: { value: new Map() },
+          _currentStreaks: { value: new Map() },
+          _peerConnection: { value: options.peerConnection, writable: true },
+          _sampleBuffer: { value: [] },
+          _sampleInterval: { value: null, writable: true },
+          _thresholds: { value: thresholds },
+          _warningsEnabled: { value: true, writable: true }
+      });
+      if (options.peerConnection) {
+          this.enable();
+      }
+      EventEmitter.call(this);
   }
-  
   inherits(RTCMonitor, EventEmitter);
-  
   /**
    * Create a sample object from a stats object using the previous sample,
    *   if available.
@@ -4025,44 +3825,40 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
    * @returns {Promise<RTCSample>}
    */
   RTCMonitor.createSample = function createSample(stats, previousSample) {
-    var previousPacketsSent = previousSample && previousSample.totals.packetsSent || 0;
-    var previousPacketsReceived = previousSample && previousSample.totals.packetsReceived || 0;
-    var previousPacketsLost = previousSample && previousSample.totals.packetsLost || 0;
-  
-    var currentPacketsSent = stats.packetsSent - previousPacketsSent;
-    var currentPacketsReceived = stats.packetsReceived - previousPacketsReceived;
-    var currentPacketsLost = stats.packetsLost - previousPacketsLost;
-    var currentInboundPackets = currentPacketsReceived + currentPacketsLost;
-    var currentPacketsLostFraction = currentInboundPackets > 0 ? currentPacketsLost / currentInboundPackets * 100 : 0;
-  
-    var totalInboundPackets = stats.packetsReceived + stats.packetsLost;
-    var totalPacketsLostFraction = totalInboundPackets > 0 ? stats.packetsLost / totalInboundPackets * 100 : 100;
-  
-    var rtt = typeof stats.rtt === 'number' || !previousSample ? stats.rtt : previousSample.rtt;
-  
-    return {
-      timestamp: stats.timestamp,
-      totals: {
-        packetsReceived: stats.packetsReceived,
-        packetsLost: stats.packetsLost,
-        packetsSent: stats.packetsSent,
-        packetsLostFraction: totalPacketsLostFraction,
-        bytesReceived: stats.bytesReceived,
-        bytesSent: stats.bytesSent
-      },
-      packetsSent: currentPacketsSent,
-      packetsReceived: currentPacketsReceived,
-      packetsLost: currentPacketsLost,
-      packetsLostFraction: currentPacketsLostFraction,
-      audioInputLevel: stats.audioInputLevel,
-      audioOutputLevel: stats.audioOutputLevel,
-      jitter: stats.jitter,
-      rtt: rtt,
-      mos: Mos.calculate(rtt, stats.jitter, previousSample && currentPacketsLostFraction),
-      codecName: stats.codecName
-    };
+      var previousPacketsSent = previousSample && previousSample.totals.packetsSent || 0;
+      var previousPacketsReceived = previousSample && previousSample.totals.packetsReceived || 0;
+      var previousPacketsLost = previousSample && previousSample.totals.packetsLost || 0;
+      var currentPacketsSent = stats.packetsSent - previousPacketsSent;
+      var currentPacketsReceived = stats.packetsReceived - previousPacketsReceived;
+      var currentPacketsLost = stats.packetsLost - previousPacketsLost;
+      var currentInboundPackets = currentPacketsReceived + currentPacketsLost;
+      var currentPacketsLostFraction = (currentInboundPackets > 0) ?
+          (currentPacketsLost / currentInboundPackets) * 100 : 0;
+      var totalInboundPackets = stats.packetsReceived + stats.packetsLost;
+      var totalPacketsLostFraction = (totalInboundPackets > 0) ?
+          (stats.packetsLost / totalInboundPackets) * 100 : 100;
+      return {
+          timestamp: stats.timestamp,
+          totals: {
+              packetsReceived: stats.packetsReceived,
+              packetsLost: stats.packetsLost,
+              packetsSent: stats.packetsSent,
+              packetsLostFraction: totalPacketsLostFraction,
+              bytesReceived: stats.bytesReceived,
+              bytesSent: stats.bytesSent
+          },
+          packetsSent: currentPacketsSent,
+          packetsReceived: currentPacketsReceived,
+          packetsLost: currentPacketsLost,
+          packetsLostFraction: currentPacketsLostFraction,
+          audioInputLevel: stats.audioInputLevel,
+          audioOutputLevel: stats.audioOutputLevel,
+          jitter: stats.jitter,
+          rtt: stats.rtt,
+          mos: Mos.calculate(stats, previousSample && currentPacketsLostFraction),
+          codecName: stats.codecName,
+      };
   };
-  
   /**
    * Start sampling RTC statistics for this {@link RTCMonitor}.
    * @param {PeerConnection} [peerConnection] - A PeerConnection to monitor.
@@ -4071,68 +3867,58 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
    * @returns {RTCMonitor} This RTCMonitor instance.
    */
   RTCMonitor.prototype.enable = function enable(peerConnection) {
-    if (peerConnection) {
-      if (this._peerConnection && peerConnection !== this._peerConnection) {
-        throw new Error('Attempted to replace an existing PeerConnection in RTCMonitor.enable');
+      if (peerConnection) {
+          if (this._peerConnection && peerConnection !== this._peerConnection) {
+              throw new Error('Attempted to replace an existing PeerConnection in RTCMonitor.enable');
+          }
+          this._peerConnection = peerConnection;
       }
-  
-      this._peerConnection = peerConnection;
-    }
-  
-    if (!this._peerConnection) {
-      throw new Error('Can not enable RTCMonitor without a PeerConnection');
-    }
-  
-    this._sampleInterval = this._sampleInterval || setInterval(this._fetchSample.bind(this), SAMPLE_INTERVAL);
-  
-    return this;
+      if (!this._peerConnection) {
+          throw new Error('Can not enable RTCMonitor without a PeerConnection');
+      }
+      this._sampleInterval = this._sampleInterval ||
+          setInterval(this._fetchSample.bind(this), SAMPLE_INTERVAL);
+      return this;
   };
-  
   /**
    * Stop sampling RTC statistics for this {@link RTCMonitor}.
    * @returns {RTCMonitor} This RTCMonitor instance.
    */
   RTCMonitor.prototype.disable = function disable() {
-    clearInterval(this._sampleInterval);
-    this._sampleInterval = null;
-  
-    return this;
+      clearInterval(this._sampleInterval);
+      this._sampleInterval = null;
+      return this;
   };
-  
   /**
    * Get stats from the PeerConnection.
    * @returns {Promise<RTCSample>} A universally-formatted version of RTC stats.
    */
   RTCMonitor.prototype.getSample = function getSample() {
-    var pc = this._peerConnection;
-    var self = this;
-  
-    return getStatistics(pc).then(function (stats) {
-      var previousSample = self._sampleBuffer.length && self._sampleBuffer[self._sampleBuffer.length - 1];
-  
-      return RTCMonitor.createSample(stats, previousSample);
-    });
+      var pc = this._peerConnection;
+      var self = this;
+      return getStatistics(pc).then(function (stats) {
+          var previousSample = self._sampleBuffer.length &&
+              self._sampleBuffer[self._sampleBuffer.length - 1];
+          return RTCMonitor.createSample(stats, previousSample);
+      });
   };
-  
   /**
    * Get stats from the PeerConnection and add it to our list of samples.
    * @private
    * @returns {Promise<Object>} A universally-formatted version of RTC stats.
    */
   RTCMonitor.prototype._fetchSample = function _fetchSample() {
-    var self = this;
-  
-    return this.getSample().then(function addSample(sample) {
-      self._addSample(sample);
-      self._raiseWarnings();
-      self.emit('sample', sample);
-      return sample;
-    }, function getSampleFailed(error) {
-      self.disable();
-      self.emit('error', error);
-    });
+      var self = this;
+      return this.getSample().then(function addSample(sample) {
+          self._addSample(sample);
+          self._raiseWarnings();
+          self.emit('sample', sample);
+          return sample;
+      }, function getSampleFailed(error) {
+          self.disable();
+          self.emit('error', error);
+      });
   };
-  
   /**
    * Add a sample to our sample buffer and remove the oldest if
    *   we are over the limit.
@@ -4140,52 +3926,45 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
    * @param {Object} sample - Sample to add
    */
   RTCMonitor.prototype._addSample = function _addSample(sample) {
-    var samples = this._sampleBuffer;
-    samples.push(sample);
-  
-    // We store 1 extra sample so that we always have (current, previous)
-    // available for all {sampleBufferSize} threshold validations.
-    if (samples.length > SAMPLE_COUNT_METRICS) {
-      samples.splice(0, samples.length - SAMPLE_COUNT_METRICS);
-    }
+      var samples = this._sampleBuffer;
+      samples.push(sample);
+      // We store 1 extra sample so that we always have (current, previous)
+      // available for all {sampleBufferSize} threshold validations.
+      if (samples.length > SAMPLE_COUNT_METRICS) {
+          samples.splice(0, samples.length - SAMPLE_COUNT_METRICS);
+      }
   };
-  
   /**
    * Apply our thresholds to our array of RTCStat samples.
    * @private
    */
   RTCMonitor.prototype._raiseWarnings = function _raiseWarnings() {
-    if (!this._warningsEnabled) {
-      return;
-    }
-  
-    for (var name in this._thresholds) {
-      this._raiseWarningsForStat(name);
-    }
+      if (!this._warningsEnabled) {
+          return;
+      }
+      for (var name_1 in this._thresholds) {
+          this._raiseWarningsForStat(name_1);
+      }
   };
-  
   /**
    * Enable warning functionality.
    * @returns {RTCMonitor}
    */
   RTCMonitor.prototype.enableWarnings = function enableWarnings() {
-    this._warningsEnabled = true;
-    return this;
+      this._warningsEnabled = true;
+      return this;
   };
-  
   /**
    * Disable warning functionality.
    * @returns {RTCMonitor}
    */
   RTCMonitor.prototype.disableWarnings = function disableWarnings() {
-    if (this._warningsEnabled) {
-      this._activeWarnings.clear();
-    }
-  
-    this._warningsEnabled = false;
-    return this;
+      if (this._warningsEnabled) {
+          this._activeWarnings.clear();
+      }
+      this._warningsEnabled = false;
+      return this;
   };
-  
   /**
    * Apply thresholds for a given stat name to our array of
    *   RTCStat samples and raise or clear any associated warnings.
@@ -4193,61 +3972,50 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
    * @param {String} statName - Name of the stat to compare.
    */
   RTCMonitor.prototype._raiseWarningsForStat = function _raiseWarningsForStat(statName) {
-    var samples = this._sampleBuffer;
-    var limits = this._thresholds[statName];
-  
-    var relevantSamples = samples.slice(-SAMPLE_COUNT_METRICS);
-    var values = relevantSamples.map(function (sample) {
-      return sample[statName];
-    });
-  
-    // (rrowland) If we have a bad or missing value in the set, we don't
-    // have enough information to throw or clear a warning. Bail out.
-    var containsNull = values.some(function (value) {
-      return typeof value === 'undefined' || value === null;
-    });
-  
-    if (containsNull) {
-      return;
-    }
-  
-    var count = void 0;
-    if (typeof limits.max === 'number') {
-      count = countHigh(limits.max, values);
-      if (count >= SAMPLE_COUNT_RAISE) {
-        this._raiseWarning(statName, 'max', { values: values });
-      } else if (count <= SAMPLE_COUNT_CLEAR) {
-        this._clearWarning(statName, 'max', { values: values });
+      var samples = this._sampleBuffer;
+      var limits = this._thresholds[statName];
+      var relevantSamples = samples.slice(-SAMPLE_COUNT_METRICS);
+      var values = relevantSamples.map(function (sample) { return sample[statName]; });
+      // (rrowland) If we have a bad or missing value in the set, we don't
+      // have enough information to throw or clear a warning. Bail out.
+      var containsNull = values.some(function (value) { return typeof value === 'undefined' || value === null; });
+      if (containsNull) {
+          return;
       }
-    }
-  
-    if (typeof limits.min === 'number') {
-      count = countLow(limits.min, values);
-      if (count >= SAMPLE_COUNT_RAISE) {
-        this._raiseWarning(statName, 'min', { values: values });
-      } else if (count <= SAMPLE_COUNT_CLEAR) {
-        this._clearWarning(statName, 'min', { values: values });
+      var count;
+      if (typeof limits.max === 'number') {
+          count = countHigh(limits.max, values);
+          if (count >= SAMPLE_COUNT_RAISE) {
+              this._raiseWarning(statName, 'max', { values: values });
+          }
+          else if (count <= SAMPLE_COUNT_CLEAR) {
+              this._clearWarning(statName, 'max', { values: values });
+          }
       }
-    }
-  
-    if (typeof limits.maxDuration === 'number' && samples.length > 1) {
-      relevantSamples = samples.slice(-2);
-      var prevValue = relevantSamples[0][statName];
-      var curValue = relevantSamples[1][statName];
-  
-      var prevStreak = this._currentStreaks.get(statName) || 0;
-      var streak = prevValue === curValue ? prevStreak + 1 : 0;
-  
-      this._currentStreaks.set(statName, streak);
-  
-      if (streak >= limits.maxDuration) {
-        this._raiseWarning(statName, 'maxDuration', { value: streak });
-      } else if (streak === 0) {
-        this._clearWarning(statName, 'maxDuration', { value: prevStreak });
+      if (typeof limits.min === 'number') {
+          count = countLow(limits.min, values);
+          if (count >= SAMPLE_COUNT_RAISE) {
+              this._raiseWarning(statName, 'min', { values: values });
+          }
+          else if (count <= SAMPLE_COUNT_CLEAR) {
+              this._clearWarning(statName, 'min', { values: values });
+          }
       }
-    }
+      if (typeof limits.maxDuration === 'number' && samples.length > 1) {
+          relevantSamples = samples.slice(-2);
+          var prevValue = relevantSamples[0][statName];
+          var curValue = relevantSamples[1][statName];
+          var prevStreak = this._currentStreaks.get(statName) || 0;
+          var streak = (prevValue === curValue) ? prevStreak + 1 : 0;
+          this._currentStreaks.set(statName, streak);
+          if (streak >= limits.maxDuration) {
+              this._raiseWarning(statName, 'maxDuration', { value: streak });
+          }
+          else if (streak === 0) {
+              this._clearWarning(statName, 'maxDuration', { value: prevStreak });
+          }
+      }
   };
-  
   /**
    * Count the number of values that cross the min threshold.
    * @private
@@ -4257,12 +4025,9 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
    *   crossed the threshold.
    */
   function countLow(min, values) {
-    // eslint-disable-next-line no-return-assign
-    return values.reduce(function (lowCount, value) {
-      return lowCount += value < min ? 1 : 0;
-    }, 0);
+      // eslint-disable-next-line no-return-assign
+      return values.reduce(function (lowCount, value) { return lowCount += (value < min) ? 1 : 0; }, 0);
   }
-  
   /**
    * Count the number of values that cross the max threshold.
    * @private
@@ -4272,12 +4037,9 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
    *   crossed the threshold.
    */
   function countHigh(max, values) {
-    // eslint-disable-next-line no-return-assign
-    return values.reduce(function (highCount, value) {
-      return highCount += value > max ? 1 : 0;
-    }, 0);
+      // eslint-disable-next-line no-return-assign
+      return values.reduce(function (highCount, value) { return highCount += (value > max) ? 1 : 0; }, 0);
   }
-  
   /**
    * Clear an active warning.
    * @param {String} statName - The name of the stat to clear.
@@ -4286,23 +4048,20 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
    * @private
    */
   RTCMonitor.prototype._clearWarning = function _clearWarning(statName, thresholdName, data) {
-    var warningId = statName + ':' + thresholdName;
-    var activeWarning = this._activeWarnings.get(warningId);
-  
-    if (!activeWarning || Date.now() - activeWarning.timeRaised < WARNING_TIMEOUT) {
-      return;
-    }
-    this._activeWarnings.delete(warningId);
-  
-    this.emit('warning-cleared', Object.assign({
-      name: statName,
-      threshold: {
-        name: thresholdName,
-        value: this._thresholds[statName][thresholdName]
+      var warningId = statName + ":" + thresholdName;
+      var activeWarning = this._activeWarnings.get(warningId);
+      if (!activeWarning || Date.now() - activeWarning.timeRaised < WARNING_TIMEOUT) {
+          return;
       }
-    }, data));
+      this._activeWarnings.delete(warningId);
+      this.emit('warning-cleared', Object.assign({
+          name: statName,
+          threshold: {
+              name: thresholdName,
+              value: this._thresholds[statName][thresholdName]
+          }
+      }, data));
   };
-  
   /**
    * Raise a warning and log its raised time.
    * @param {String} statName - The name of the stat to raise.
@@ -4311,103 +4070,89 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
    * @private
    */
   RTCMonitor.prototype._raiseWarning = function _raiseWarning(statName, thresholdName, data) {
-    var warningId = statName + ':' + thresholdName;
-  
-    if (this._activeWarnings.has(warningId)) {
-      return;
-    }
-    this._activeWarnings.set(warningId, { timeRaised: Date.now() });
-  
-    this.emit('warning', Object.assign({
-      name: statName,
-      threshold: {
-        name: thresholdName,
-        value: this._thresholds[statName][thresholdName]
+      var warningId = statName + ":" + thresholdName;
+      if (this._activeWarnings.has(warningId)) {
+          return;
       }
-    }, data));
+      this._activeWarnings.set(warningId, { timeRaised: Date.now() });
+      this.emit('warning', Object.assign({
+          name: statName,
+          threshold: {
+              name: thresholdName,
+              value: this._thresholds[statName][thresholdName]
+          }
+      }, data));
   };
-  
   module.exports = RTCMonitor;
+  
   },{"./mos":19,"./stats":23,"events":42,"util":53}],19:[function(require,module,exports){
-  'use strict';
-  
   var rfactorConstants = {
-    r0: 94.768,
-    is: 1.42611
+      r0: 94.768,
+      is: 1.42611
   };
-  
   /**
    * Calculate the mos score of a stats object
-   * @param {number} rtt
-   * @param {number} jitter
+   * @param {object} sample - Sample, must have rtt and jitter
    * @param {number} fractionLost - The fraction of packets that have been lost
        Calculated by packetsLost / totalPackets
    * @return {number} mos - Calculated MOS, 1.0 through roughly 4.5
    */
-  function calcMos(rtt, jitter, fractionLost) {
-    if (!isPositiveNumber(rtt) || !isPositiveNumber(jitter) || !isPositiveNumber(fractionLost)) {
-      return null;
-    }
-  
-    var rFactor = calculateRFactor(rtt, jitter, fractionLost);
-  
-    var mos = 1 + 0.035 * rFactor + 0.000007 * rFactor * (rFactor - 60) * (100 - rFactor);
-  
-    // Make sure MOS is in range
-    var isValid = mos >= 1.0 && mos < 4.6;
-    return isValid ? mos : null;
+  function calcMos(sample, fractionLost) {
+      if (!sample ||
+          !isPositiveNumber(sample.rtt) ||
+          !isPositiveNumber(sample.jitter) ||
+          !isPositiveNumber(fractionLost)) {
+          return null;
+      }
+      var rFactor = calculateRFactor(sample.rtt, sample.jitter, fractionLost);
+      var mos = 1 + (0.035 * rFactor) + (0.000007 * rFactor) *
+          (rFactor - 60) * (100 - rFactor);
+      // Make sure MOS is in range
+      var isValid = (mos >= 1.0 && mos < 4.6);
+      return isValid ? mos : null;
   }
-  
   function calculateRFactor(rtt, jitter, fractionLost) {
-    var effectiveLatency = rtt + jitter * 2 + 10;
-    var rFactor = 0;
-  
-    switch (true) {
-      case effectiveLatency < 160:
-        rFactor = rfactorConstants.r0 - effectiveLatency / 40;
-        break;
-      case effectiveLatency < 1000:
-        rFactor = rfactorConstants.r0 - (effectiveLatency - 120) / 10;
-        break;
-      case effectiveLatency >= 1000:
-        rFactor = rfactorConstants.r0 - effectiveLatency / 100;
-        break;
-    }
-  
-    var multiplier = .01;
-    switch (true) {
-      case fractionLost === -1:
-        multiplier = 0;
-        rFactor = 0;
-        break;
-      case fractionLost <= rFactor / 2.5:
-        multiplier = 2.5;
-        break;
-      case fractionLost > rFactor / 2.5 && fractionLost < 100:
-        multiplier = .25;
-        break;
-    }
-  
-    rFactor -= fractionLost * multiplier;
-    return rFactor;
+      var effectiveLatency = rtt + (jitter * 2) + 10;
+      var rFactor = 0;
+      switch (true) {
+          case effectiveLatency < 160:
+              rFactor = rfactorConstants.r0 - (effectiveLatency / 40);
+              break;
+          case effectiveLatency < 1000:
+              rFactor = rfactorConstants.r0 - ((effectiveLatency - 120) / 10);
+              break;
+          case effectiveLatency >= 1000:
+              rFactor = rfactorConstants.r0 - ((effectiveLatency) / 100);
+              break;
+      }
+      var multiplier = .01;
+      switch (true) {
+          case fractionLost === -1:
+              multiplier = 0;
+              rFactor = 0;
+              break;
+          case fractionLost <= (rFactor / 2.5):
+              multiplier = 2.5;
+              break;
+          case fractionLost > (rFactor / 2.5) && fractionLost < 100:
+              multiplier = .25;
+              break;
+      }
+      rFactor -= (fractionLost * multiplier);
+      return rFactor;
   }
-  
   function isPositiveNumber(n) {
-    return typeof n === 'number' && !isNaN(n) && isFinite(n) && n >= 0;
+      return typeof n === 'number' && !isNaN(n) && isFinite(n) && n >= 0;
   }
-  
   module.exports = {
-    calculate: calcMos
+      calculate: calcMos
   };
-  },{}],20:[function(require,module,exports){
-  'use strict';
   
+  },{}],20:[function(require,module,exports){
   var Log = require('../log');
   var util = require('../util');
   var RTCPC = require('./rtcpc');
-  
   var INITIAL_ICE_CONNECTION_STATE = 'new';
-  
   /**
    * @typedef {Object} PeerConnection
    * @param audioHelper
@@ -4417,68 +4162,63 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
    * @constructor
    */
   function PeerConnection(audioHelper, pstream, getUserMedia, options) {
-    if (!audioHelper || !pstream || !getUserMedia) {
-      throw new Error('Audiohelper, pstream and getUserMedia are required arguments');
-    }
-  
-    if (!(this instanceof PeerConnection)) {
-      return new PeerConnection(audioHelper, pstream, getUserMedia, options);
-    }
-  
-    function noop() {}
-    this.onopen = noop;
-    this.onerror = noop;
-    this.onclose = noop;
-    this.ondisconnect = noop;
-    this.onreconnect = noop;
-    this.onsignalingstatechange = noop;
-    this.oniceconnectionstatechange = noop;
-    this.onicegatheringstatechange = noop;
-    this.onicecandidate = noop;
-    this.onvolume = noop;
-    this.version = null;
-    this.pstream = pstream;
-    this.stream = null;
-    this.sinkIds = new Set(['default']);
-    this.outputs = new Map();
-    this.status = 'connecting';
-    this.callSid = null;
-    this.isMuted = false;
-    this.getUserMedia = getUserMedia;
-  
-    var AudioContext = typeof window !== 'undefined' && (window.AudioContext || window.webkitAudioContext);
-    this._isSinkSupported = !!AudioContext && typeof HTMLAudioElement !== 'undefined' && HTMLAudioElement.prototype.setSinkId;
-    // NOTE(mmalavalli): Since each Connection creates its own AudioContext,
-    // after 6 instances an exception is thrown. Refer https://www.w3.org/2011/audio/track/issues/3.
-    // In order to get around it, we are re-using the Device's AudioContext.
-    this._audioContext = AudioContext && audioHelper._audioContext;
-    this._masterAudio = null;
-    this._masterAudioDeviceId = null;
-    this._mediaStreamSource = null;
-    this._dtmfSender = null;
-    this._dtmfSenderUnsupported = false;
-    this._callEvents = [];
-    this._nextTimeToPublish = Date.now();
-    this._onAnswerOrRinging = noop;
-    this._remoteStream = null;
-    this._shouldManageStream = true;
-    Log.mixinLog(this, '[Twilio.PeerConnection]');
-    this.log.enabled = options.debug;
-    this.log.warnings = options.warnings;
-    this._iceState = INITIAL_ICE_CONNECTION_STATE;
-  
-    this.options = options = options || {};
-    this.navigator = options.navigator || (typeof navigator !== 'undefined' ? navigator : null);
-    this.util = options.util || util;
-    this.codecPreferences = options.codecPreferences;
-  
-    return this;
+      if (!audioHelper || !pstream || !getUserMedia) {
+          throw new Error('Audiohelper, pstream and getUserMedia are required arguments');
+      }
+      if (!(this instanceof PeerConnection)) {
+          return new PeerConnection(audioHelper, pstream, getUserMedia, options);
+      }
+      function noop() { }
+      this.onopen = noop;
+      this.onerror = noop;
+      this.onclose = noop;
+      this.ondisconnect = noop;
+      this.onreconnect = noop;
+      this.onsignalingstatechange = noop;
+      this.oniceconnectionstatechange = noop;
+      this.onicecandidate = noop;
+      this.onvolume = noop;
+      this.version = null;
+      this.pstream = pstream;
+      this.stream = null;
+      this.sinkIds = new Set(['default']);
+      this.outputs = new Map();
+      this.status = 'connecting';
+      this.callSid = null;
+      this.isMuted = false;
+      this.getUserMedia = getUserMedia;
+      var AudioContext = typeof window !== 'undefined'
+          && (window.AudioContext || window.webkitAudioContext);
+      this._isSinkSupported = !!AudioContext &&
+          typeof HTMLAudioElement !== 'undefined' && HTMLAudioElement.prototype.setSinkId;
+      // NOTE(mmalavalli): Since each Connection creates its own AudioContext,
+      // after 6 instances an exception is thrown. Refer https://www.w3.org/2011/audio/track/issues/3.
+      // In order to get around it, we are re-using the Device's AudioContext.
+      this._audioContext = AudioContext && audioHelper._audioContext;
+      this._masterAudio = null;
+      this._masterAudioDeviceId = null;
+      this._mediaStreamSource = null;
+      this._dtmfSender = null;
+      this._dtmfSenderUnsupported = false;
+      this._callEvents = [];
+      this._nextTimeToPublish = Date.now();
+      this._onAnswerOrRinging = noop;
+      this._remoteStream = null;
+      this._shouldManageStream = true;
+      Log.mixinLog(this, '[Twilio.PeerConnection]');
+      this.log.enabled = options.debug;
+      this.log.warnings = options.warnings;
+      this._iceState = INITIAL_ICE_CONNECTION_STATE;
+      this.options = options = options || {};
+      this.navigator = options.navigator
+          || (typeof navigator !== 'undefined' ? navigator : null);
+      this.util = options.util || util;
+      this.codecPreferences = options.codecPreferences;
+      return this;
   }
-  
   PeerConnection.prototype.uri = function () {
-    return this._uri;
+      return this._uri;
   };
-  
   /**
    * Open the underlying RTCPeerConnection with a MediaStream obtained by
    *   passed constraints. The resulting MediaStream is created internally
@@ -4486,9 +4226,9 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
    * @param {MediaStreamConstraints} constraints
    */
   PeerConnection.prototype.openWithConstraints = function (constraints) {
-    return this.getUserMedia({ audio: constraints }).then(this._setInputTracksFromStream.bind(this, false));
+      return this.getUserMedia({ audio: constraints })
+          .then(this._setInputTracksFromStream.bind(this, false));
   };
-  
   /**
    * Replace the existing input audio tracks with the audio tracks from the
    *   passed input audio stream. We re-use the existing stream because
@@ -4496,83 +4236,70 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
    * @param {MediaStream} stream
    */
   PeerConnection.prototype.setInputTracksFromStream = function (stream) {
-    var self = this;
-    return this._setInputTracksFromStream(true, stream).then(function () {
-      self._shouldManageStream = false;
-    });
+      var self = this;
+      return this._setInputTracksFromStream(true, stream).then(function () {
+          self._shouldManageStream = false;
+      });
   };
-  
   PeerConnection.prototype._createAnalyser = function (stream, audioContext) {
-    var analyser = audioContext.createAnalyser();
-    analyser.fftSize = 32;
-    analyser.smoothingTimeConstant = 0.3;
-  
-    var streamSource = audioContext.createMediaStreamSource(stream);
-    streamSource.connect(analyser);
-  
-    return analyser;
+      var analyser = audioContext.createAnalyser();
+      analyser.fftSize = 32;
+      analyser.smoothingTimeConstant = 0.3;
+      var streamSource = audioContext.createMediaStreamSource(stream);
+      streamSource.connect(analyser);
+      return analyser;
   };
-  
   PeerConnection.prototype._setVolumeHandler = function (handler) {
-    this.onvolume = handler;
+      this.onvolume = handler;
   };
   PeerConnection.prototype._startPollingVolume = function () {
-    if (!this._audioContext || !this.stream || !this._remoteStream) {
-      return;
-    }
-  
-    var audioContext = this._audioContext;
-  
-    var inputAnalyser = this._inputAnalyser = this._createAnalyser(this.stream, audioContext);
-    var inputBufferLength = inputAnalyser.frequencyBinCount;
-    var inputDataArray = new Uint8Array(inputBufferLength);
-  
-    var outputAnalyser = this._outputAnalyser = this._createAnalyser(this._remoteStream, audioContext);
-    var outputBufferLength = outputAnalyser.frequencyBinCount;
-    var outputDataArray = new Uint8Array(outputBufferLength);
-  
-    var self = this;
-    requestAnimationFrame(function emitVolume() {
-      if (!self._audioContext) {
-        return;
-      } else if (self.status === 'closed') {
-        self._inputAnalyser.disconnect();
-        self._outputAnalyser.disconnect();
-        return;
+      if (!this._audioContext || !this.stream || !this._remoteStream) {
+          return;
       }
-  
-      self._inputAnalyser.getByteFrequencyData(inputDataArray);
-      var inputVolume = self.util.average(inputDataArray);
-  
-      self._outputAnalyser.getByteFrequencyData(outputDataArray);
-      var outputVolume = self.util.average(outputDataArray);
-  
-      self.onvolume(inputVolume / 255, outputVolume / 255);
-  
-      requestAnimationFrame(emitVolume);
-    });
-  };
-  
-  PeerConnection.prototype._stopStream = function _stopStream(stream) {
-    // We shouldn't stop the tracks if they were not created inside
-    //   this PeerConnection.
-    if (!this._shouldManageStream) {
-      return;
-    }
-  
-    if (typeof MediaStreamTrack.prototype.stop === 'function') {
-      var audioTracks = typeof stream.getAudioTracks === 'function' ? stream.getAudioTracks() : stream.audioTracks;
-      audioTracks.forEach(function (track) {
-        track.stop();
+      var audioContext = this._audioContext;
+      var inputAnalyser = this._inputAnalyser = this._createAnalyser(this.stream, audioContext);
+      var inputBufferLength = inputAnalyser.frequencyBinCount;
+      var inputDataArray = new Uint8Array(inputBufferLength);
+      var outputAnalyser = this._outputAnalyser = this._createAnalyser(this._remoteStream, audioContext);
+      var outputBufferLength = outputAnalyser.frequencyBinCount;
+      var outputDataArray = new Uint8Array(outputBufferLength);
+      var self = this;
+      requestAnimationFrame(function emitVolume() {
+          if (!self._audioContext) {
+              return;
+          }
+          else if (self.status === 'closed') {
+              self._inputAnalyser.disconnect();
+              self._outputAnalyser.disconnect();
+              return;
+          }
+          self._inputAnalyser.getByteFrequencyData(inputDataArray);
+          var inputVolume = self.util.average(inputDataArray);
+          self._outputAnalyser.getByteFrequencyData(outputDataArray);
+          var outputVolume = self.util.average(outputDataArray);
+          self.onvolume(inputVolume / 255, outputVolume / 255);
+          requestAnimationFrame(emitVolume);
       });
-    }
-    // NOTE(mroberts): This is just a fallback to any ancient browsers that may
-    // not implement MediaStreamTrack.stop.
-    else {
-        stream.stop();
+  };
+  PeerConnection.prototype._stopStream = function _stopStream(stream) {
+      // We shouldn't stop the tracks if they were not created inside
+      //   this PeerConnection.
+      if (!this._shouldManageStream) {
+          return;
+      }
+      if (typeof MediaStreamTrack.prototype.stop === 'function') {
+          var audioTracks = typeof stream.getAudioTracks === 'function'
+              ? stream.getAudioTracks() : stream.audioTracks;
+          audioTracks.forEach(function (track) {
+              track.stop();
+          });
+      }
+      // NOTE(mroberts): This is just a fallback to any ancient browsers that may
+      // not implement MediaStreamTrack.stop.
+      else {
+          stream.stop();
       }
   };
-  
   /**
    * Replace the tracks of the current stream with new tracks. We do this rather than replacing the
    *   whole stream because AnalyzerNodes are bound to a stream.
@@ -4585,141 +4312,112 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
    * @private
    */
   PeerConnection.prototype._setInputTracksFromStream = function (shouldClone, newStream) {
-    var _this = this;
-  
-    if (!newStream) {
-      return Promise.reject(new Error('Can not set input stream to null while in a call'));
-    }
-  
-    if (!newStream.getAudioTracks().length) {
-      return Promise.reject(new Error('Supplied input stream has no audio tracks'));
-    }
-  
-    var localStream = this.stream;
-  
-    if (!localStream) {
-      // We can't use MediaStream.clone() here because it stopped copying over tracks
-      //   as of Chrome 61. https://bugs.chromium.org/p/chromium/issues/detail?id=770908
-      this.stream = shouldClone ? cloneStream(newStream) : newStream;
-    } else {
-      this._stopStream(localStream);
-  
-      removeStream(this.version.pc, localStream);
-      localStream.getAudioTracks().forEach(localStream.removeTrack, localStream);
-      newStream.getAudioTracks().forEach(localStream.addTrack, localStream);
-      addStream(this.version.pc, newStream);
-    }
-  
-    // Apply mute settings to new input track
-    this.mute(this.isMuted);
-  
-    if (!this.version) {
-      return Promise.resolve(this.stream);
-    }
-  
-    return new Promise(function (resolve, reject) {
-      _this.version.createOffer(_this.codecPreferences, { audio: true }, function () {
-        _this.version.processAnswer(_this.codecPreferences, _this._answerSdp, function () {
-          if (_this._audioContext) {
-            _this._inputAnalyser = _this._createAnalyser(_this.stream, _this._audioContext);
-          }
-          resolve(_this.stream);
-        }, reject);
-      }, reject);
-    });
-  };
-  
-  PeerConnection.prototype._onInputDevicesChanged = function () {
-    if (!this.stream) {
-      return;
-    }
-  
-    // If all of our active tracks are ended, then our active input was lost
-    var activeInputWasLost = this.stream.getAudioTracks().every(function (track) {
-      return track.readyState === 'ended';
-    });
-  
-    // We only want to act if we manage the stream in PeerConnection (It was created
-    // here, rather than passed in.)
-    if (activeInputWasLost && this._shouldManageStream) {
-      this.openWithConstraints(true);
-    }
-  };
-  
-  PeerConnection.prototype._setSinkIds = function (sinkIds) {
-    if (!this._isSinkSupported) {
-      return Promise.reject(new Error('Audio output selection is not supported by this browser'));
-    }
-  
-    this.sinkIds = new Set(sinkIds.forEach ? sinkIds : [sinkIds]);
-    return this.version ? this._updateAudioOutputs() : Promise.resolve();
-  };
-  
-  PeerConnection.prototype._updateAudioOutputs = function updateAudioOutputs() {
-    var addedOutputIds = Array.from(this.sinkIds).filter(function (id) {
-      return !this.outputs.has(id);
-    }, this);
-  
-    var removedOutputIds = Array.from(this.outputs.keys()).filter(function (id) {
-      return !this.sinkIds.has(id);
-    }, this);
-  
-    var self = this;
-    var createOutputPromises = addedOutputIds.map(this._createAudioOutput, this);
-    return Promise.all(createOutputPromises).then(function () {
-      return Promise.all(removedOutputIds.map(self._removeAudioOutput, self));
-    });
-  };
-  
-  PeerConnection.prototype._createAudio = function createAudio(arr) {
-    return new Audio(arr);
-  };
-  
-  PeerConnection.prototype._createAudioOutput = function createAudioOutput(id) {
-    var dest = this._audioContext.createMediaStreamDestination();
-    this._mediaStreamSource.connect(dest);
-  
-    var audio = this._createAudio();
-    setAudioSource(audio, dest.stream);
-  
-    var self = this;
-    return audio.setSinkId(id).then(function () {
-      return audio.play();
-    }).then(function () {
-      self.outputs.set(id, {
-        audio: audio,
-        dest: dest
+      var _this = this;
+      if (!newStream) {
+          return Promise.reject(new Error('Can not set input stream to null while in a call'));
+      }
+      if (!newStream.getAudioTracks().length) {
+          return Promise.reject(new Error('Supplied input stream has no audio tracks'));
+      }
+      var localStream = this.stream;
+      if (!localStream) {
+          // We can't use MediaStream.clone() here because it stopped copying over tracks
+          //   as of Chrome 61. https://bugs.chromium.org/p/chromium/issues/detail?id=770908
+          this.stream = shouldClone ? cloneStream(newStream) : newStream;
+      }
+      else {
+          this._stopStream(localStream);
+          removeStream(this.version.pc, localStream);
+          localStream.getAudioTracks().forEach(localStream.removeTrack, localStream);
+          newStream.getAudioTracks().forEach(localStream.addTrack, localStream);
+          addStream(this.version.pc, newStream);
+      }
+      // Apply mute settings to new input track
+      this.mute(this.isMuted);
+      if (!this.version) {
+          return Promise.resolve(this.stream);
+      }
+      return new Promise(function (resolve, reject) {
+          _this.version.createOffer(_this.codecPreferences, { audio: true }, function () {
+              _this.version.processAnswer(_this.codecPreferences, _this._answerSdp, function () {
+                  if (_this._audioContext) {
+                      _this._inputAnalyser = _this._createAnalyser(_this.stream, _this._audioContext);
+                  }
+                  resolve(_this.stream);
+              }, reject);
+          }, reject);
       });
-    });
   };
-  
+  PeerConnection.prototype._onInputDevicesChanged = function () {
+      if (!this.stream) {
+          return;
+      }
+      // If all of our active tracks are ended, then our active input was lost
+      var activeInputWasLost = this.stream.getAudioTracks().every(function (track) { return track.readyState === 'ended'; });
+      // We only want to act if we manage the stream in PeerConnection (It was created
+      // here, rather than passed in.)
+      if (activeInputWasLost && this._shouldManageStream) {
+          this.openWithConstraints(true);
+      }
+  };
+  PeerConnection.prototype._setSinkIds = function (sinkIds) {
+      if (!this._isSinkSupported) {
+          return Promise.reject(new Error('Audio output selection is not supported by this browser'));
+      }
+      this.sinkIds = new Set(sinkIds.forEach ? sinkIds : [sinkIds]);
+      return this.version
+          ? this._updateAudioOutputs()
+          : Promise.resolve();
+  };
+  PeerConnection.prototype._updateAudioOutputs = function updateAudioOutputs() {
+      var addedOutputIds = Array.from(this.sinkIds).filter(function (id) {
+          return !this.outputs.has(id);
+      }, this);
+      var removedOutputIds = Array.from(this.outputs.keys()).filter(function (id) {
+          return !this.sinkIds.has(id);
+      }, this);
+      var self = this;
+      var createOutputPromises = addedOutputIds.map(this._createAudioOutput, this);
+      return Promise.all(createOutputPromises).then(function () { return Promise.all(removedOutputIds.map(self._removeAudioOutput, self)); });
+  };
+  PeerConnection.prototype._createAudio = function createAudio(arr) {
+      return new Audio(arr);
+  };
+  PeerConnection.prototype._createAudioOutput = function createAudioOutput(id) {
+      var dest = this._audioContext.createMediaStreamDestination();
+      this._mediaStreamSource.connect(dest);
+      var audio = this._createAudio();
+      setAudioSource(audio, dest.stream);
+      var self = this;
+      return audio.setSinkId(id).then(function () { return audio.play(); }).then(function () {
+          self.outputs.set(id, {
+              audio: audio,
+              dest: dest
+          });
+      });
+  };
   PeerConnection.prototype._removeAudioOutputs = function removeAudioOutputs() {
-    if (this._masterAudio && typeof this._masterAudioDeviceId !== 'undefined') {
-      this._disableOutput(this, this._masterAudioDeviceId);
-      this.outputs.delete(this._masterAudioDeviceId);
-      this._masterAudio = null;
-      this._masterAudioDeviceId = null;
-    }
-  
-    return Array.from(this.outputs.keys()).map(this._removeAudioOutput, this);
+      if (this._masterAudio && typeof this._masterAudioDeviceId !== 'undefined') {
+          this._disableOutput(this, this._masterAudioDeviceId);
+          this.outputs.delete(this._masterAudioDeviceId);
+          this._masterAudio = null;
+          this._masterAudioDeviceId = null;
+      }
+      return Array.from(this.outputs.keys()).map(this._removeAudioOutput, this);
   };
-  
   PeerConnection.prototype._disableOutput = function disableOutput(pc, id) {
-    var output = pc.outputs.get(id);
-    if (!output) {
-      return;
-    }
-  
-    if (output.audio) {
-      output.audio.pause();
-      output.audio.src = '';
-    }
-  
-    if (output.dest) {
-      output.dest.disconnect();
-    }
+      var output = pc.outputs.get(id);
+      if (!output) {
+          return;
+      }
+      if (output.audio) {
+          output.audio.pause();
+          output.audio.src = '';
+      }
+      if (output.dest) {
+          output.dest.disconnect();
+      }
   };
-  
   /**
    * Disable a non-master output, and update the master output to assume its state. This
    *   is called when the device ID assigned to the master output has been removed from
@@ -4730,33 +4428,27 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
    * @param {string} masterId - The current device ID assigned to the master audio element.
    */
   PeerConnection.prototype._reassignMasterOutput = function reassignMasterOutput(pc, masterId) {
-    var masterOutput = pc.outputs.get(masterId);
-    pc.outputs.delete(masterId);
-  
-    var self = this;
-    var idToReplace = Array.from(pc.outputs.keys())[0] || 'default';
-    return masterOutput.audio.setSinkId(idToReplace).then(function () {
-      self._disableOutput(pc, idToReplace);
-  
-      pc.outputs.set(idToReplace, masterOutput);
-      pc._masterAudioDeviceId = idToReplace;
-    }).catch(function rollback() {
-      pc.outputs.set(masterId, masterOutput);
-      self.log('Could not reassign master output. Attempted to roll back.');
-    });
+      var masterOutput = pc.outputs.get(masterId);
+      pc.outputs.delete(masterId);
+      var self = this;
+      var idToReplace = Array.from(pc.outputs.keys())[0] || 'default';
+      return masterOutput.audio.setSinkId(idToReplace).then(function () {
+          self._disableOutput(pc, idToReplace);
+          pc.outputs.set(idToReplace, masterOutput);
+          pc._masterAudioDeviceId = idToReplace;
+      }).catch(function rollback() {
+          pc.outputs.set(masterId, masterOutput);
+          self.log('Could not reassign master output. Attempted to roll back.');
+      });
   };
-  
   PeerConnection.prototype._removeAudioOutput = function removeAudioOutput(id) {
-    if (this._masterAudioDeviceId === id) {
-      return this._reassignMasterOutput(this, id);
-    }
-  
-    this._disableOutput(this, id);
-    this.outputs.delete(id);
-  
-    return Promise.resolve();
+      if (this._masterAudioDeviceId === id) {
+          return this._reassignMasterOutput(this, id);
+      }
+      this._disableOutput(this, id);
+      this.outputs.delete(id);
+      return Promise.resolve();
   };
-  
   /**
    * Use an AudioContext to potentially split our audio output stream to multiple
    *   audio devices. This is only available to browsers with AudioContext and
@@ -4765,298 +4457,237 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
    *   track of its ID because we must replace it if we lose its initial device.
    */
   PeerConnection.prototype._onAddTrack = function onAddTrack(pc, stream) {
-    var audio = pc._masterAudio = this._createAudio();
-    setAudioSource(audio, stream);
-    audio.play();
-  
-    // Assign the initial master audio element to a random active output device
-    var deviceId = Array.from(pc.outputs.keys())[0] || 'default';
-    pc._masterAudioDeviceId = deviceId;
-    pc.outputs.set(deviceId, {
-      audio: audio
-    });
-  
-    pc._mediaStreamSource = pc._audioContext.createMediaStreamSource(stream);
-  
-    pc.pcStream = stream;
-    pc._updateAudioOutputs();
+      var audio = pc._masterAudio = this._createAudio();
+      setAudioSource(audio, stream);
+      audio.play();
+      // Assign the initial master audio element to a random active output device
+      var deviceId = Array.from(pc.outputs.keys())[0] || 'default';
+      pc._masterAudioDeviceId = deviceId;
+      pc.outputs.set(deviceId, {
+          audio: audio
+      });
+      pc._mediaStreamSource = pc._audioContext.createMediaStreamSource(stream);
+      pc.pcStream = stream;
+      pc._updateAudioOutputs();
   };
-  
   /**
    * Use a single audio element to play the audio output stream. This does not
    *   support multiple output devices, and is a fallback for when AudioContext
    *   and/or HTMLAudioElement.setSinkId() is not available to the client.
    */
   PeerConnection.prototype._fallbackOnAddTrack = function fallbackOnAddTrack(pc, stream) {
-    var audio = document && document.createElement('audio');
-    audio.autoplay = true;
-  
-    if (!setAudioSource(audio, stream)) {
-      pc.log('Error attaching stream to element.');
-    }
-  
-    pc.outputs.set('default', {
-      audio: audio
-    });
-  };
-  
-  PeerConnection.prototype._setNetworkPriority = function (priority) {
-    if (!this.options || !this.options.dscp || !this._sender || typeof this._sender.getParameters !== 'function' || typeof this._sender.setParameters !== 'function') {
-      return;
-    }
-  
-    var params = this._sender.getParameters();
-    if (!params.priority && !(params.encodings && params.encodings.length)) {
-      return;
-    }
-  
-    // This is how MDN's RTPSenderParameters defines priority
-    params.priority = priority;
-  
-    // And this is how it's currently implemented in Chrome M72+
-    if (params.encodings && params.encodings.length) {
-      params.encodings.forEach(function (encoding) {
-        encoding.priority = priority;
-        encoding.networkPriority = priority;
+      var audio = document && document.createElement('audio');
+      audio.autoplay = true;
+      if (!setAudioSource(audio, stream)) {
+          pc.log('Error attaching stream to element.');
+      }
+      pc.outputs.set('default', {
+          audio: audio
       });
-    }
-  
-    this._sender.setParameters(params);
   };
-  
   PeerConnection.prototype._setupPeerConnection = function (rtcConstraints, rtcConfiguration) {
-    var _this2 = this;
-  
-    var self = this;
-    var version = this._getProtocol();
-    version.create(this.log, rtcConstraints, rtcConfiguration);
-    addStream(version.pc, this.stream);
-  
-    var eventName = 'ontrack' in version.pc ? 'ontrack' : 'onaddstream';
-  
-    version.pc[eventName] = function (event) {
-      var stream = self._remoteStream = event.stream || event.streams[0];
-  
-      if (typeof version.pc.getSenders === 'function') {
-        _this2._sender = version.pc.getSenders()[0];
-      }
-  
-      if (self._isSinkSupported) {
-        self._onAddTrack(self, stream);
-      } else {
-        self._fallbackOnAddTrack(self, stream);
-      }
-  
-      self._startPollingVolume();
-    };
-    return version;
+      var self = this;
+      var version = this._getProtocol();
+      version.create(this.log, rtcConstraints, rtcConfiguration);
+      addStream(version.pc, this.stream);
+      var eventName = 'ontrack' in version.pc
+          ? 'ontrack' : 'onaddstream';
+      version.pc[eventName] = function (event) {
+          var stream = self._remoteStream = event.stream || event.streams[0];
+          if (self._isSinkSupported) {
+              self._onAddTrack(self, stream);
+          }
+          else {
+              self._fallbackOnAddTrack(self, stream);
+          }
+          self._startPollingVolume();
+      };
+      return version;
   };
   PeerConnection.prototype._setupChannel = function () {
-    var _this3 = this;
-  
-    var self = this;
-    var pc = this.version.pc;
-  
-    // Chrome 25 supports onopen
-    self.version.pc.onopen = function () {
-      self.status = 'open';
-      self.onopen();
-    };
-  
-    // Chrome 26 doesn't support onopen so must detect state change
-    self.version.pc.onstatechange = function () {
-      if (self.version.pc && self.version.pc.readyState === 'stable') {
-        self.status = 'open';
-        self.onopen();
-      }
-    };
-  
-    // Chrome 27 changed onstatechange to onsignalingstatechange
-    self.version.pc.onsignalingstatechange = function () {
-      var state = pc.signalingState;
-      self.log('signalingState is "' + state + '"');
-  
-      if (self.version.pc && self.version.pc.signalingState === 'stable') {
-        self.status = 'open';
-        self.onopen();
-      }
-  
-      self.onsignalingstatechange(pc.signalingState);
-    };
-  
-    pc.onicecandidate = function onicecandidate(event) {
-      self.onicecandidate(event.candidate);
-    };
-  
-    pc.onicegatheringstatechange = function () {
-      self.onicegatheringstatechange(pc.iceGatheringState);
-    };
-  
-    pc.oniceconnectionstatechange = function () {
-      var state = pc.iceConnectionState;
-      // Grab our previous state to help determine cause of state change
-      var previousState = _this3._iceState;
-      _this3._iceState = state;
-  
-      var message = void 0;
-      switch (state) {
-        case 'connected':
-          if (previousState === 'disconnected') {
-            message = 'ICE liveliness check succeeded. Connection with Twilio restored';
-            self.log(message);
-            self.onreconnect(message);
+      var _this = this;
+      var self = this;
+      var pc = this.version.pc;
+      // Chrome 25 supports onopen
+      self.version.pc.onopen = function () {
+          self.status = 'open';
+          self.onopen();
+      };
+      // Chrome 26 doesn't support onopen so must detect state change
+      self.version.pc.onstatechange = function () {
+          if (self.version.pc && self.version.pc.readyState === 'stable') {
+              self.status = 'open';
+              self.onopen();
           }
-          break;
-        case 'disconnected':
-          message = 'ICE liveliness check failed. May be having trouble connecting to Twilio';
-          self.log(message);
-          self.ondisconnect(message);
-          break;
-        case 'failed':
-          // Takes care of checking->failed and disconnected->failed
-          message = (previousState === 'checking' ? 'ICE negotiation with Twilio failed.' : 'Connection with Twilio was interrupted.') + ' Call will terminate.';
-  
-          self.log(message);
-          self.onerror({
-            info: {
-              code: 31003,
-              message: message
-            },
-            disconnect: true
-          });
-          break;
-        default:
-          self.log('iceConnectionState is "' + state + '"');
-      }
-  
-      self.oniceconnectionstatechange(state);
-    };
+      };
+      // Chrome 27 changed onstatechange to onsignalingstatechange
+      self.version.pc.onsignalingstatechange = function () {
+          var state = pc.signalingState;
+          self.log("signalingState is \"" + state + "\"");
+          if (self.version.pc && self.version.pc.signalingState === 'stable') {
+              self.status = 'open';
+              self.onopen();
+          }
+          self.onsignalingstatechange(pc.signalingState);
+      };
+      pc.onicecandidate = function onicecandidate(event) {
+          self.onicecandidate(event.candidate);
+      };
+      pc.oniceconnectionstatechange = function () {
+          var state = pc.iceConnectionState;
+          // Grab our previous state to help determine cause of state change
+          var previousState = _this._iceState;
+          _this._iceState = state;
+          var message;
+          switch (state) {
+              case 'connected':
+                  if (previousState === 'disconnected') {
+                      message = 'ICE liveliness check succeeded. Connection with Twilio restored';
+                      self.log(message);
+                      self.onreconnect(message);
+                  }
+                  break;
+              case 'disconnected':
+                  message = 'ICE liveliness check failed. May be having trouble connecting to Twilio';
+                  self.log(message);
+                  self.ondisconnect(message);
+                  break;
+              case 'failed':
+                  // Takes care of checking->failed and disconnected->failed
+                  message = (previousState === 'checking'
+                      ? 'ICE negotiation with Twilio failed.'
+                      : 'Connection with Twilio was interrupted.') + " Call will terminate.";
+                  self.log(message);
+                  self.onerror({
+                      info: {
+                          code: 31003,
+                          message: message
+                      },
+                      disconnect: true
+                  });
+                  break;
+              default:
+                  self.log("iceConnectionState is \"" + state + "\"");
+          }
+          self.oniceconnectionstatechange(state);
+      };
   };
   PeerConnection.prototype._initializeMediaStream = function (rtcConstraints, rtcConfiguration) {
-    // if mediastream already open then do nothing
-    if (this.status === 'open') {
-      return false;
-    }
-    if (this.pstream.status === 'disconnected') {
-      this.onerror({ info: {
-          code: 31000,
-          message: 'Cannot establish connection. Client is disconnected'
-        } });
-      this.close();
-      return false;
-    }
-    this.version = this._setupPeerConnection(rtcConstraints, rtcConfiguration);
-    this._setupChannel();
-    return true;
+      // if mediastream already open then do nothing
+      if (this.status === 'open') {
+          return false;
+      }
+      if (this.pstream.status === 'disconnected') {
+          this.onerror({ info: {
+                  code: 31000,
+                  message: 'Cannot establish connection. Client is disconnected'
+              } });
+          this.close();
+          return false;
+      }
+      this.version = this._setupPeerConnection(rtcConstraints, rtcConfiguration);
+      this._setupChannel();
+      return true;
   };
   PeerConnection.prototype.makeOutgoingCall = function (token, params, callsid, rtcConstraints, rtcConfiguration, onMediaStarted) {
-    var _this4 = this;
-  
-    if (!this._initializeMediaStream(rtcConstraints, rtcConfiguration)) {
-      return;
-    }
-  
-    var self = this;
-    this.callSid = callsid;
-    function onAnswerSuccess() {
-      self._setNetworkPriority('high');
-      onMediaStarted(self.version.pc);
-    }
-    function onAnswerError(err) {
-      var errMsg = err.message || err;
-      self.onerror({ info: { code: 31000, message: 'Error processing answer: ' + errMsg } });
-    }
-    this._onAnswerOrRinging = function (payload) {
-      if (!payload.sdp) {
-        return;
+      var _this = this;
+      if (!this._initializeMediaStream(rtcConstraints, rtcConfiguration)) {
+          return;
       }
-  
-      self._answerSdp = payload.sdp;
-      if (self.status !== 'closed') {
-        self.version.processAnswer(_this4.codecPreferences, payload.sdp, onAnswerSuccess, onAnswerError);
+      var self = this;
+      this.callSid = callsid;
+      function onAnswerSuccess() {
+          onMediaStarted(self.version.pc);
       }
-      self.pstream.removeListener('answer', self._onAnswerOrRinging);
-      self.pstream.removeListener('ringing', self._onAnswerOrRinging);
-    };
-    this.pstream.on('answer', this._onAnswerOrRinging);
-    this.pstream.on('ringing', this._onAnswerOrRinging);
-  
-    function onOfferSuccess() {
-      if (self.status !== 'closed') {
-        self.pstream.publish('invite', {
-          sdp: self.version.getSDP(),
-          callsid: self.callSid,
-          twilio: params ? { params: params } : {}
-        });
+      function onAnswerError(err) {
+          var errMsg = err.message || err;
+          self.onerror({ info: { code: 31000, message: "Error processing answer: " + errMsg } });
       }
-    }
-  
-    function onOfferError(err) {
-      var errMsg = err.message || err;
-      self.onerror({ info: { code: 31000, message: 'Error creating the offer: ' + errMsg } });
-    }
-  
-    this.version.createOffer(this.codecPreferences, { audio: true }, onOfferSuccess, onOfferError);
+      this._onAnswerOrRinging = function (payload) {
+          if (!payload.sdp) {
+              return;
+          }
+          self._answerSdp = payload.sdp;
+          if (self.status !== 'closed') {
+              self.version.processAnswer(_this.codecPreferences, payload.sdp, onAnswerSuccess, onAnswerError);
+          }
+          self.pstream.removeListener('answer', self._onAnswerOrRinging);
+          self.pstream.removeListener('ringing', self._onAnswerOrRinging);
+      };
+      this.pstream.on('answer', this._onAnswerOrRinging);
+      this.pstream.on('ringing', this._onAnswerOrRinging);
+      function onOfferSuccess() {
+          if (self.status !== 'closed') {
+              self.pstream.publish('invite', {
+                  sdp: self.version.getSDP(),
+                  callsid: self.callSid,
+                  twilio: params ? { params: params } : {}
+              });
+          }
+      }
+      function onOfferError(err) {
+          var errMsg = err.message || err;
+          self.onerror({ info: { code: 31000, message: "Error creating the offer: " + errMsg } });
+      }
+      this.version.createOffer(this.codecPreferences, { audio: true }, onOfferSuccess, onOfferError);
   };
   PeerConnection.prototype.answerIncomingCall = function (callSid, sdp, rtcConstraints, rtcConfiguration, onMediaStarted) {
-    if (!this._initializeMediaStream(rtcConstraints, rtcConfiguration)) {
-      return;
-    }
-    this._answerSdp = sdp.replace(/^a=setup:actpass$/gm, 'a=setup:passive');
-    this.callSid = callSid;
-    var self = this;
-    function onAnswerSuccess() {
-      if (self.status !== 'closed') {
-        self.pstream.publish('answer', {
-          callsid: callSid,
-          sdp: self.version.getSDP()
-        });
-        self._setNetworkPriority('high');
-        onMediaStarted(self.version.pc);
+      if (!this._initializeMediaStream(rtcConstraints, rtcConfiguration)) {
+          return;
       }
-    }
-    function onAnswerError(err) {
-      var errMsg = err.message || err;
-      self.onerror({ info: { code: 31000, message: 'Error creating the answer: ' + errMsg } });
-    }
-    this.version.processSDP(this.codecPreferences, sdp, { audio: true }, onAnswerSuccess, onAnswerError);
+      this._answerSdp = sdp.replace(/^a=setup:actpass$/gm, 'a=setup:passive');
+      this.callSid = callSid;
+      var self = this;
+      function onAnswerSuccess() {
+          if (self.status !== 'closed') {
+              self.pstream.publish('answer', {
+                  callsid: callSid,
+                  sdp: self.version.getSDP()
+              });
+              onMediaStarted(self.version.pc);
+          }
+      }
+      function onAnswerError(err) {
+          var errMsg = err.message || err;
+          self.onerror({ info: { code: 31000, message: "Error creating the answer: " + errMsg } });
+      }
+      this.version.processSDP(this.codecPreferences, sdp, { audio: true }, onAnswerSuccess, onAnswerError);
   };
   PeerConnection.prototype.close = function () {
-    if (this.version && this.version.pc) {
-      if (this.version.pc.signalingState !== 'closed') {
-        this.version.pc.close();
+      if (this.version && this.version.pc) {
+          if (this.version.pc.signalingState !== 'closed') {
+              this.version.pc.close();
+          }
+          this.version.pc = null;
       }
-  
-      this.version.pc = null;
-    }
-    if (this.stream) {
-      this.mute(false);
-      this._stopStream(this.stream);
-    }
-    this.stream = null;
-    if (this.pstream) {
-      this.pstream.removeListener('answer', this._onAnswerOrRinging);
-    }
-    Promise.all(this._removeAudioOutputs()).catch(function () {
-      // We don't need to alert about failures here.
-    });
-    if (this._mediaStreamSource) {
-      this._mediaStreamSource.disconnect();
-    }
-    if (this._inputAnalyser) {
-      this._inputAnalyser.disconnect();
-    }
-    if (this._outputAnalyser) {
-      this._outputAnalyser.disconnect();
-    }
-    this.status = 'closed';
-    this.onclose();
+      if (this.stream) {
+          this.mute(false);
+          this._stopStream(this.stream);
+      }
+      this.stream = null;
+      if (this.pstream) {
+          this.pstream.removeListener('answer', this._onAnswerOrRinging);
+      }
+      Promise.all(this._removeAudioOutputs()).catch(function () {
+          // We don't need to alert about failures here.
+      });
+      if (this._mediaStreamSource) {
+          this._mediaStreamSource.disconnect();
+      }
+      if (this._inputAnalyser) {
+          this._inputAnalyser.disconnect();
+      }
+      if (this._outputAnalyser) {
+          this._outputAnalyser.disconnect();
+      }
+      this.status = 'closed';
+      this.onclose();
   };
   PeerConnection.prototype.reject = function (callSid) {
-    this.callSid = callSid;
+      this.callSid = callSid;
   };
   PeerConnection.prototype.ignore = function (callSid) {
-    this.callSid = callSid;
+      this.callSid = callSid;
   };
   /**
    * Mute or unmute input audio. If the stream is not yet present, the setting
@@ -5065,16 +4696,16 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
    *   be muted or unmuted.
    */
   PeerConnection.prototype.mute = function (shouldMute) {
-    this.isMuted = shouldMute;
-    if (!this.stream) {
-      return;
-    }
-  
-    var audioTracks = typeof this.stream.getAudioTracks === 'function' ? this.stream.getAudioTracks() : this.stream.audioTracks;
-  
-    audioTracks.forEach(function (track) {
-      track.enabled = !shouldMute;
-    });
+      this.isMuted = shouldMute;
+      if (!this.stream) {
+          return;
+      }
+      var audioTracks = typeof this.stream.getAudioTracks === 'function'
+          ? this.stream.getAudioTracks()
+          : this.stream.audioTracks;
+      audioTracks.forEach(function (track) {
+          track.enabled = !shouldMute;
+      });
   };
   /**
    * Get or create an RTCDTMFSender for the first local audio MediaStreamTrack
@@ -5083,96 +4714,73 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
    * @returns ?RTCDTMFSender
    */
   PeerConnection.prototype.getOrCreateDTMFSender = function getOrCreateDTMFSender() {
-    if (this._dtmfSender || this._dtmfSenderUnsupported) {
-      return this._dtmfSender || null;
-    }
-  
-    var self = this;
-    var pc = this.version.pc;
-    if (!pc) {
-      this.log('No RTCPeerConnection available to call createDTMFSender on');
+      if (this._dtmfSender || this._dtmfSenderUnsupported) {
+          return this._dtmfSender || null;
+      }
+      var self = this;
+      var pc = this.version.pc;
+      if (!pc) {
+          this.log('No RTCPeerConnection available to call createDTMFSender on');
+          return null;
+      }
+      if (typeof pc.getSenders === 'function' && (typeof RTCDTMFSender === 'function' || typeof RTCDtmfSender === 'function')) {
+          var chosenSender = pc.getSenders().find(function (sender) { return sender.dtmf; });
+          if (chosenSender) {
+              this.log('Using RTCRtpSender#dtmf');
+              this._dtmfSender = chosenSender.dtmf;
+              return this._dtmfSender;
+          }
+      }
+      if (typeof pc.createDTMFSender === 'function' && typeof pc.getLocalStreams === 'function') {
+          var track = pc.getLocalStreams().map(function (stream) {
+              var tracks = self._getAudioTracks(stream);
+              return tracks && tracks[0];
+          })[0];
+          if (!track) {
+              this.log('No local audio MediaStreamTrack available on the RTCPeerConnection to pass to createDTMFSender');
+              return null;
+          }
+          this.log('Creating RTCDTMFSender');
+          this._dtmfSender = pc.createDTMFSender(track);
+          return this._dtmfSender;
+      }
+      this.log('RTCPeerConnection does not support RTCDTMFSender');
+      this._dtmfSenderUnsupported = true;
       return null;
-    }
-  
-    if (typeof pc.getSenders === 'function' && (typeof RTCDTMFSender === 'function' || typeof RTCDtmfSender === 'function')) {
-      var chosenSender = pc.getSenders().find(function (sender) {
-        return sender.dtmf;
-      });
-      if (chosenSender) {
-        this.log('Using RTCRtpSender#dtmf');
-        this._dtmfSender = chosenSender.dtmf;
-        return this._dtmfSender;
-      }
-    }
-  
-    if (typeof pc.createDTMFSender === 'function' && typeof pc.getLocalStreams === 'function') {
-      var track = pc.getLocalStreams().map(function (stream) {
-        var tracks = self._getAudioTracks(stream);
-        return tracks && tracks[0];
-      })[0];
-  
-      if (!track) {
-        this.log('No local audio MediaStreamTrack available on the RTCPeerConnection to pass to createDTMFSender');
-        return null;
-      }
-  
-      this.log('Creating RTCDTMFSender');
-      this._dtmfSender = pc.createDTMFSender(track);
-      return this._dtmfSender;
-    }
-  
-    this.log('RTCPeerConnection does not support RTCDTMFSender');
-    this._dtmfSenderUnsupported = true;
-    return null;
   };
-  
-  PeerConnection.prototype._canStopMediaStreamTrack = function () {
-    return typeof MediaStreamTrack.prototype.stop === 'function';
-  };
-  
-  PeerConnection.prototype._getAudioTracks = function (stream) {
-    return typeof stream.getAudioTracks === 'function' ? stream.getAudioTracks() : stream.audioTracks;
-  };
-  
-  PeerConnection.prototype._getProtocol = function () {
-    return PeerConnection.protocol;
-  };
-  
-  PeerConnection.protocol = function () {
-    return RTCPC.test() ? new RTCPC() : null;
-  }();
-  
+  PeerConnection.prototype._canStopMediaStreamTrack = function () { return typeof MediaStreamTrack.prototype.stop === 'function'; };
+  PeerConnection.prototype._getAudioTracks = function (stream) { return typeof stream.getAudioTracks === 'function' ?
+      stream.getAudioTracks() : stream.audioTracks; };
+  PeerConnection.prototype._getProtocol = function () { return PeerConnection.protocol; };
+  PeerConnection.protocol = ((function () { return RTCPC.test() ? new RTCPC() : null; }))();
   function addStream(pc, stream) {
-    if (typeof pc.addTrack === 'function') {
-      stream.getAudioTracks().forEach(function (track) {
-        // The second parameters, stream, should not be necessary per the latest editor's
-        //   draft, but FF requires it. https://bugzilla.mozilla.org/show_bug.cgi?id=1231414
-        pc.addTrack(track, stream);
-      });
-    } else {
-      pc.addStream(stream);
-    }
+      if (typeof pc.addTrack === 'function') {
+          stream.getAudioTracks().forEach(function (track) {
+              // The second parameters, stream, should not be necessary per the latest editor's
+              //   draft, but FF requires it. https://bugzilla.mozilla.org/show_bug.cgi?id=1231414
+              pc.addTrack(track, stream);
+          });
+      }
+      else {
+          pc.addStream(stream);
+      }
   }
-  
   function cloneStream(oldStream) {
-    var newStream = typeof MediaStream !== 'undefined' ? new MediaStream()
-    // eslint-disable-next-line
-    : new webkitMediaStream();
-  
-    oldStream.getAudioTracks().forEach(newStream.addTrack, newStream);
-    return newStream;
+      var newStream = typeof MediaStream !== 'undefined'
+          ? new MediaStream()
+          // eslint-disable-next-line
+          : new webkitMediaStream();
+      oldStream.getAudioTracks().forEach(newStream.addTrack, newStream);
+      return newStream;
   }
-  
   function removeStream(pc, stream) {
-    if (typeof pc.removeTrack === 'function') {
-      pc.getSenders().forEach(function (sender) {
-        pc.removeTrack(sender);
-      });
-    } else {
-      pc.removeStream(stream);
-    }
+      if (typeof pc.removeTrack === 'function') {
+          pc.getSenders().forEach(function (sender) { pc.removeTrack(sender); });
+      }
+      else {
+          pc.removeStream(stream);
+      }
   }
-  
   /**
    * Set the source of an HTMLAudioElement to the specified MediaStream
    * @param {HTMLAudioElement} audio
@@ -5180,145 +4788,134 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
    * @returns {boolean} Whether the audio source was set successfully
    */
   function setAudioSource(audio, stream) {
-    if (typeof audio.srcObject !== 'undefined') {
-      audio.srcObject = stream;
-    } else if (typeof audio.mozSrcObject !== 'undefined') {
-      audio.mozSrcObject = stream;
-    } else if (typeof audio.src !== 'undefined') {
-      var _window = audio.options.window || window;
-      audio.src = (_window.URL || _window.webkitURL).createObjectURL(stream);
-    } else {
-      return false;
-    }
-  
-    return true;
+      if (typeof audio.srcObject !== 'undefined') {
+          audio.srcObject = stream;
+      }
+      else if (typeof audio.mozSrcObject !== 'undefined') {
+          audio.mozSrcObject = stream;
+      }
+      else if (typeof audio.src !== 'undefined') {
+          var _window = audio.options.window || window;
+          audio.src = (_window.URL || _window.webkitURL).createObjectURL(stream);
+      }
+      else {
+          return false;
+      }
+      return true;
   }
-  
   PeerConnection.enabled = !!PeerConnection.protocol;
-  
   module.exports = PeerConnection;
+  
   },{"../log":10,"../util":29,"./rtcpc":21}],21:[function(require,module,exports){
   (function (global){
-  'use strict';
-  
-  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-  
   /* global webkitRTCPeerConnection, mozRTCPeerConnection, mozRTCSessionDescription, mozRTCIceCandidate */
   var RTCPeerConnectionShim = require('rtcpeerconnection-shim');
-  
-  var _require = require('./sdp'),
-      setCodecPreferences = _require.setCodecPreferences;
-  
+  var setCodecPreferences = require('./sdp').setCodecPreferences;
   var util = require('../util');
-  
   function RTCPC() {
-    if (typeof window === 'undefined') {
-      this.log('No RTCPeerConnection implementation available. The window object was not found.');
-      return;
-    }
-  
-    if (util.isEdge()) {
-      this.RTCPeerConnection = new RTCPeerConnectionShim(typeof window !== 'undefined' ? window : global);
-    } else if (typeof window.RTCPeerConnection === 'function') {
-      this.RTCPeerConnection = window.RTCPeerConnection;
-    } else if (typeof window.webkitRTCPeerConnection === 'function') {
-      this.RTCPeerConnection = webkitRTCPeerConnection;
-    } else if (typeof window.mozRTCPeerConnection === 'function') {
-      this.RTCPeerConnection = mozRTCPeerConnection;
-      window.RTCSessionDescription = mozRTCSessionDescription;
-      window.RTCIceCandidate = mozRTCIceCandidate;
-    } else {
-      this.log('No RTCPeerConnection implementation available');
-    }
+      if (typeof window === 'undefined') {
+          this.log('No RTCPeerConnection implementation available. The window object was not found.');
+          return;
+      }
+      if (util.isEdge()) {
+          this.RTCPeerConnection = new RTCPeerConnectionShim(typeof window !== 'undefined' ? window : global);
+      }
+      else if (typeof window.RTCPeerConnection === 'function') {
+          this.RTCPeerConnection = window.RTCPeerConnection;
+      }
+      else if (typeof window.webkitRTCPeerConnection === 'function') {
+          this.RTCPeerConnection = webkitRTCPeerConnection;
+      }
+      else if (typeof window.mozRTCPeerConnection === 'function') {
+          this.RTCPeerConnection = mozRTCPeerConnection;
+          window.RTCSessionDescription = mozRTCSessionDescription;
+          window.RTCIceCandidate = mozRTCIceCandidate;
+      }
+      else {
+          this.log('No RTCPeerConnection implementation available');
+      }
   }
-  
   RTCPC.prototype.create = function (log, rtcConstraints, rtcConfiguration) {
-    this.log = log;
-    this.pc = new this.RTCPeerConnection(rtcConfiguration, rtcConstraints);
+      this.log = log;
+      this.pc = new this.RTCPeerConnection(rtcConfiguration, rtcConstraints);
   };
   RTCPC.prototype.createModernConstraints = function (c) {
-    // createOffer differs between Chrome 23 and Chrome 24+.
-    // See https://groups.google.com/forum/?fromgroups=#!topic/discuss-webrtc/JBDZtrMumyU
-    // Unfortunately I haven't figured out a way to detect which format
-    // is required ahead of time, so we'll first try the old way, and
-    // if we get an exception, then we'll try the new way.
-    if (typeof c === 'undefined') {
-      return null;
-    }
-    // NOTE(mroberts): As of Chrome 38, Chrome still appears to expect
-    // constraints under the 'mandatory' key, and with the first letter of each
-    // constraint capitalized. Firefox, on the other hand, has deprecated the
-    // 'mandatory' key and does not expect the first letter of each constraint
-    // capitalized.
-    var nc = {};
-    if (typeof webkitRTCPeerConnection !== 'undefined' && !util.isEdge()) {
-      nc.mandatory = {};
-      if (typeof c.audio !== 'undefined') {
-        nc.mandatory.OfferToReceiveAudio = c.audio;
+      // createOffer differs between Chrome 23 and Chrome 24+.
+      // See https://groups.google.com/forum/?fromgroups=#!topic/discuss-webrtc/JBDZtrMumyU
+      // Unfortunately I haven't figured out a way to detect which format
+      // is required ahead of time, so we'll first try the old way, and
+      // if we get an exception, then we'll try the new way.
+      if (typeof c === 'undefined') {
+          return null;
       }
-      if (typeof c.video !== 'undefined') {
-        nc.mandatory.OfferToReceiveVideo = c.video;
+      // NOTE(mroberts): As of Chrome 38, Chrome still appears to expect
+      // constraints under the 'mandatory' key, and with the first letter of each
+      // constraint capitalized. Firefox, on the other hand, has deprecated the
+      // 'mandatory' key and does not expect the first letter of each constraint
+      // capitalized.
+      var nc = {};
+      if (typeof webkitRTCPeerConnection !== 'undefined' && !util.isEdge()) {
+          nc.mandatory = {};
+          if (typeof c.audio !== 'undefined') {
+              nc.mandatory.OfferToReceiveAudio = c.audio;
+          }
+          if (typeof c.video !== 'undefined') {
+              nc.mandatory.OfferToReceiveVideo = c.video;
+          }
       }
-    } else {
-      if (typeof c.audio !== 'undefined') {
-        nc.offerToReceiveAudio = c.audio;
+      else {
+          if (typeof c.audio !== 'undefined') {
+              nc.offerToReceiveAudio = c.audio;
+          }
+          if (typeof c.video !== 'undefined') {
+              nc.offerToReceiveVideo = c.video;
+          }
       }
-      if (typeof c.video !== 'undefined') {
-        nc.offerToReceiveVideo = c.video;
-      }
-    }
-    return nc;
+      return nc;
   };
   RTCPC.prototype.createOffer = function (codecPreferences, constraints, onSuccess, onError) {
-    var _this = this;
-  
-    constraints = this.createModernConstraints(constraints);
-    return promisifyCreate(this.pc.createOffer, this.pc)(constraints).then(function (offer) {
-      if (!_this.pc) {
-        return Promise.resolve();
-      }
-  
-      return promisifySet(_this.pc.setLocalDescription, _this.pc)(new RTCSessionDescription({
-        type: 'offer',
-        sdp: setCodecPreferences(offer.sdp, codecPreferences)
-      }));
-    }).then(onSuccess, onError);
+      var _this = this;
+      constraints = this.createModernConstraints(constraints);
+      return promisifyCreate(this.pc.createOffer, this.pc)(constraints).then(function (offer) {
+          if (!_this.pc) {
+              return Promise.resolve();
+          }
+          return promisifySet(_this.pc.setLocalDescription, _this.pc)(new RTCSessionDescription({
+              type: 'offer',
+              sdp: setCodecPreferences(offer.sdp, codecPreferences),
+          }));
+      }).then(onSuccess, onError);
   };
   RTCPC.prototype.createAnswer = function (codecPreferences, constraints, onSuccess, onError) {
-    var _this2 = this;
-  
-    constraints = this.createModernConstraints(constraints);
-    return promisifyCreate(this.pc.createAnswer, this.pc)(constraints).then(function (answer) {
-      if (!_this2.pc) {
-        return Promise.resolve();
-      }
-  
-      return promisifySet(_this2.pc.setLocalDescription, _this2.pc)(new RTCSessionDescription({
-        type: 'answer',
-        sdp: setCodecPreferences(answer.sdp, codecPreferences)
-      }));
-    }).then(onSuccess, onError);
+      var _this = this;
+      constraints = this.createModernConstraints(constraints);
+      return promisifyCreate(this.pc.createAnswer, this.pc)(constraints).then(function (answer) {
+          if (!_this.pc) {
+              return Promise.resolve();
+          }
+          return promisifySet(_this.pc.setLocalDescription, _this.pc)(new RTCSessionDescription({
+              type: 'answer',
+              sdp: setCodecPreferences(answer.sdp, codecPreferences),
+          }));
+      }).then(onSuccess, onError);
   };
   RTCPC.prototype.processSDP = function (codecPreferences, sdp, constraints, onSuccess, onError) {
-    var _this3 = this;
-  
-    sdp = setCodecPreferences(sdp, codecPreferences);
-  
-    var desc = new RTCSessionDescription({ sdp: sdp, type: 'offer' });
-    return promisifySet(this.pc.setRemoteDescription, this.pc)(desc).then(function () {
-      _this3.createAnswer(codecPreferences, constraints, onSuccess, onError);
-    });
+      var _this = this;
+      sdp = setCodecPreferences(sdp, codecPreferences);
+      var desc = new RTCSessionDescription({ sdp: sdp, type: 'offer' });
+      return promisifySet(this.pc.setRemoteDescription, this.pc)(desc).then(function () {
+          _this.createAnswer(codecPreferences, constraints, onSuccess, onError);
+      });
   };
   RTCPC.prototype.getSDP = function () {
-    return this.pc.localDescription.sdp;
+      return this.pc.localDescription.sdp;
   };
   RTCPC.prototype.processAnswer = function (codecPreferences, sdp, onSuccess, onError) {
-    if (!this.pc) {
-      return Promise.resolve();
-    }
-    sdp = setCodecPreferences(sdp, codecPreferences);
-  
-    return promisifySet(this.pc.setRemoteDescription, this.pc)(new RTCSessionDescription({ sdp: sdp, type: 'answer' })).then(onSuccess, onError);
+      if (!this.pc) {
+          return Promise.resolve();
+      }
+      sdp = setCodecPreferences(sdp, codecPreferences);
+      return promisifySet(this.pc.setRemoteDescription, this.pc)(new RTCSessionDescription({ sdp: sdp, type: 'answer' })).then(onSuccess, onError);
   };
   /* NOTE(mroberts): Firefox 18 through 21 include a `mozRTCPeerConnection`
      object, but attempting to instantiate it will throw the error
@@ -5334,64 +4931,62 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
   
   */
   RTCPC.test = function () {
-    if ((typeof navigator === 'undefined' ? 'undefined' : _typeof(navigator)) === 'object') {
-      var getUserMedia = navigator.mediaDevices && navigator.mediaDevices.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.getUserMedia;
-  
-      if (getUserMedia && typeof window.RTCPeerConnection === 'function') {
-        return true;
-      } else if (getUserMedia && typeof window.webkitRTCPeerConnection === 'function') {
-        return true;
-      } else if (getUserMedia && typeof window.mozRTCPeerConnection === 'function') {
-        try {
-          // eslint-disable-next-line babel/new-cap
-          var test = new window.mozRTCPeerConnection();
-          if (typeof test.getLocalStreams !== 'function') return false;
-        } catch (e) {
-          return false;
-        }
-        return true;
-      } else if (typeof RTCIceGatherer !== 'undefined') {
-        return true;
+      if (typeof navigator === 'object') {
+          var getUserMedia = (navigator.mediaDevices && navigator.mediaDevices.getUserMedia)
+              || navigator.webkitGetUserMedia
+              || navigator.mozGetUserMedia
+              || navigator.getUserMedia;
+          if (getUserMedia && typeof window.RTCPeerConnection === 'function') {
+              return true;
+          }
+          else if (getUserMedia && typeof window.webkitRTCPeerConnection === 'function') {
+              return true;
+          }
+          else if (getUserMedia && typeof window.mozRTCPeerConnection === 'function') {
+              try {
+                  // eslint-disable-next-line babel/new-cap
+                  var test_1 = new window.mozRTCPeerConnection();
+                  if (typeof test_1.getLocalStreams !== 'function')
+                      return false;
+              }
+              catch (e) {
+                  return false;
+              }
+              return true;
+          }
+          else if (typeof RTCIceGatherer !== 'undefined') {
+              return true;
+          }
       }
-    }
-  
-    return false;
+      return false;
   };
-  
   function promisify(fn, ctx, areCallbacksFirst) {
-    return function () {
-      var args = Array.prototype.slice.call(arguments);
-  
-      return new Promise(function (resolve) {
-        resolve(fn.apply(ctx, args));
-      }).catch(function () {
-        return new Promise(function (resolve, reject) {
-          fn.apply(ctx, areCallbacksFirst ? [resolve, reject].concat(args) : args.concat([resolve, reject]));
-        });
-      });
-    };
+      return function () {
+          var args = Array.prototype.slice.call(arguments);
+          return new Promise(function (resolve) {
+              resolve(fn.apply(ctx, args));
+          }).catch(function () { return new Promise(function (resolve, reject) {
+              fn.apply(ctx, areCallbacksFirst
+                  ? [resolve, reject].concat(args)
+                  : args.concat([resolve, reject]));
+          }); });
+      };
   }
-  
   function promisifyCreate(fn, ctx) {
-    return promisify(fn, ctx, true);
+      return promisify(fn, ctx, true);
   }
-  
   function promisifySet(fn, ctx) {
-    return promisify(fn, ctx, false);
+      return promisify(fn, ctx, false);
   }
-  
   module.exports = RTCPC;
+  
   }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
   },{"../util":29,"./sdp":22,"rtcpeerconnection-shim":50}],22:[function(require,module,exports){
-  'use strict';
-  
   var util = require('../util');
-  
   var ptToFixedBitrateAudioCodecName = {
-    0: 'PCMU',
-    8: 'PCMA'
+      0: 'PCMU',
+      8: 'PCMA'
   };
-  
   /**
    * Return a new SDP string with the re-ordered codec preferences.
    * @param {string} sdp
@@ -5400,26 +4995,27 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
    * @returns {string} Updated SDP string
    */
   function setCodecPreferences(sdp, preferredCodecs) {
-    var mediaSections = getMediaSections(sdp);
-    var session = sdp.split('\r\nm=')[0];
-    return [session].concat(mediaSections.map(function (section) {
-      // Codec preferences should not be applied to m=application sections.
-      if (!/^m=(audio|video)/.test(section)) {
-        return section;
-      }
-      var kind = section.match(/^m=(audio|video)/)[1];
-      var codecMap = createCodecMapForMediaSection(section);
-      var payloadTypes = getReorderedPayloadTypes(codecMap, preferredCodecs);
-      var newSection = setPayloadTypesInMediaSection(payloadTypes, section);
-  
-      var pcmaPayloadTypes = codecMap.get('pcma') || [];
-      var pcmuPayloadTypes = codecMap.get('pcmu') || [];
-      var fixedBitratePayloadTypes = kind === 'audio' ? new Set(pcmaPayloadTypes.concat(pcmuPayloadTypes)) : new Set();
-  
-      return fixedBitratePayloadTypes.has(payloadTypes[0]) ? newSection.replace(/\r\nb=(AS|TIAS):([0-9]+)/g, '') : newSection;
-    })).join('\r\n');
+      var mediaSections = getMediaSections(sdp);
+      var session = sdp.split('\r\nm=')[0];
+      return [session].concat(mediaSections.map(function (section) {
+          // Codec preferences should not be applied to m=application sections.
+          if (!/^m=(audio|video)/.test(section)) {
+              return section;
+          }
+          var kind = section.match(/^m=(audio|video)/)[1];
+          var codecMap = createCodecMapForMediaSection(section);
+          var payloadTypes = getReorderedPayloadTypes(codecMap, preferredCodecs);
+          var newSection = setPayloadTypesInMediaSection(payloadTypes, section);
+          var pcmaPayloadTypes = codecMap.get('pcma') || [];
+          var pcmuPayloadTypes = codecMap.get('pcmu') || [];
+          var fixedBitratePayloadTypes = kind === 'audio'
+              ? new Set(pcmaPayloadTypes.concat(pcmuPayloadTypes))
+              : new Set();
+          return fixedBitratePayloadTypes.has(payloadTypes[0])
+              ? newSection.replace(/\r\nb=(AS|TIAS):([0-9]+)/g, '')
+              : newSection;
+      })).join('\r\n');
   }
-  
   /**
    * Get the m= sections of a particular kind and direction from an sdp.
    * @param {string} sdp - SDP string
@@ -5428,29 +5024,25 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
    * @returns {Array<string>} mediaSections
    */
   function getMediaSections(sdp, kind, direction) {
-    return sdp.replace(/\r\n\r\n$/, '\r\n').split('\r\nm=').slice(1).map(function (mediaSection) {
-      return 'm=' + mediaSection;
-    }).filter(function (mediaSection) {
-      var kindPattern = new RegExp('m=' + (kind || '.*'), 'gm');
-      var directionPattern = new RegExp('a=' + (direction || '.*'), 'gm');
-      return kindPattern.test(mediaSection) && directionPattern.test(mediaSection);
-    });
+      return sdp.replace(/\r\n\r\n$/, '\r\n').split('\r\nm=').slice(1).map(function (mediaSection) { return "m=" + mediaSection; }).filter(function (mediaSection) {
+          var kindPattern = new RegExp("m=" + (kind || '.*'), 'gm');
+          var directionPattern = new RegExp("a=" + (direction || '.*'), 'gm');
+          return kindPattern.test(mediaSection) && directionPattern.test(mediaSection);
+      });
   }
-  
   /**
    * Create a Codec Map for the given m= section.
    * @param {string} section - The given m= section
    * @returns {Map<Codec, Array<PT>>}
    */
   function createCodecMapForMediaSection(section) {
-    return Array.from(createPtToCodecName(section)).reduce(function (codecMap, pair) {
-      var pt = pair[0];
-      var codecName = pair[1];
-      var pts = codecMap.get(codecName) || [];
-      return codecMap.set(codecName, pts.concat(pt));
-    }, new Map());
+      return Array.from(createPtToCodecName(section)).reduce(function (codecMap, pair) {
+          var pt = pair[0];
+          var codecName = pair[1];
+          var pts = codecMap.get(codecName) || [];
+          return codecMap.set(codecName, pts.concat(pt));
+      }, new Map());
   }
-  
   /**
    * Create the reordered Codec Payload Types based on the preferred Codec Names.
    * @param {Map<Codec, Array<PT>>} codecMap - Codec Map
@@ -5458,22 +5050,12 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
    * @returns {Array<PT>} Reordered Payload Types
    */
   function getReorderedPayloadTypes(codecMap, preferredCodecs) {
-    preferredCodecs = preferredCodecs.map(function (codecName) {
-      return codecName.toLowerCase();
-    });
-  
-    var preferredPayloadTypes = util.flatMap(preferredCodecs, function (codecName) {
-      return codecMap.get(codecName) || [];
-    });
-  
-    var remainingCodecs = util.difference(Array.from(codecMap.keys()), preferredCodecs);
-    var remainingPayloadTypes = util.flatMap(remainingCodecs, function (codecName) {
-      return codecMap.get(codecName);
-    });
-  
-    return preferredPayloadTypes.concat(remainingPayloadTypes);
+      preferredCodecs = preferredCodecs.map(function (codecName) { return codecName.toLowerCase(); });
+      var preferredPayloadTypes = util.flatMap(preferredCodecs, function (codecName) { return codecMap.get(codecName) || []; });
+      var remainingCodecs = util.difference(Array.from(codecMap.keys()), preferredCodecs);
+      var remainingPayloadTypes = util.flatMap(remainingCodecs, function (codecName) { return codecMap.get(codecName); });
+      return preferredPayloadTypes.concat(remainingPayloadTypes);
   }
-  
   /**
    * Set the given Codec Payload Types in the first line of the given m= section.
    * @param {Array<PT>} payloadTypes - Payload Types
@@ -5481,73 +5063,67 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
    * @returns {string} - Updated m= section
    */
   function setPayloadTypesInMediaSection(payloadTypes, section) {
-    var lines = section.split('\r\n');
-    var mLine = lines[0];
-    var otherLines = lines.slice(1);
-    mLine = mLine.replace(/([0-9]+\s?)+$/, payloadTypes.join(' '));
-    return [mLine].concat(otherLines).join('\r\n');
+      var lines = section.split('\r\n');
+      var mLine = lines[0];
+      var otherLines = lines.slice(1);
+      mLine = mLine.replace(/([0-9]+\s?)+$/, payloadTypes.join(' '));
+      return [mLine].concat(otherLines).join('\r\n');
   }
-  
   /**
    * Create a Map from PTs to codec names for the given m= section.
    * @param {string} mediaSection - The given m= section.
    * @returns {Map<PT, Codec>} ptToCodecName
    */
   function createPtToCodecName(mediaSection) {
-    return getPayloadTypesInMediaSection(mediaSection).reduce(function (ptToCodecName, pt) {
-      var rtpmapPattern = new RegExp('a=rtpmap:' + pt + ' ([^/]+)');
-      var matches = mediaSection.match(rtpmapPattern);
-      var codecName = matches ? matches[1].toLowerCase() : ptToFixedBitrateAudioCodecName[pt] ? ptToFixedBitrateAudioCodecName[pt].toLowerCase() : '';
-      return ptToCodecName.set(pt, codecName);
-    }, new Map());
+      return getPayloadTypesInMediaSection(mediaSection).reduce(function (ptToCodecName, pt) {
+          var rtpmapPattern = new RegExp("a=rtpmap:" + pt + " ([^/]+)");
+          var matches = mediaSection.match(rtpmapPattern);
+          var codecName = matches
+              ? matches[1].toLowerCase()
+              : ptToFixedBitrateAudioCodecName[pt]
+                  ? ptToFixedBitrateAudioCodecName[pt].toLowerCase()
+                  : '';
+          return ptToCodecName.set(pt, codecName);
+      }, new Map());
   }
-  
   /**
    * Get the Codec Payload Types present in the first line of the given m= section
    * @param {string} section - The m= section
    * @returns {Array<PT>} Payload Types
    */
   function getPayloadTypesInMediaSection(section) {
-    var mLine = section.split('\r\n')[0];
-  
-    // In "m=<kind> <port> <proto> <payload_type_1> <payload_type_2> ... <payload_type_n>",
-    // the regex matches <port> and the PayloadTypes.
-    var matches = mLine.match(/([0-9]+)/g);
-  
-    // This should not happen, but in case there are no PayloadTypes in
-    // the m= line, return an empty array.
-    if (!matches) {
-      return [];
-    }
-  
-    // Since only the PayloadTypes are needed, we discard the <port>.
-    return matches.slice(1).map(function (match) {
-      return parseInt(match, 10);
-    });
+      var mLine = section.split('\r\n')[0];
+      // In "m=<kind> <port> <proto> <payload_type_1> <payload_type_2> ... <payload_type_n>",
+      // the regex matches <port> and the PayloadTypes.
+      var matches = mLine.match(/([0-9]+)/g);
+      // This should not happen, but in case there are no PayloadTypes in
+      // the m= line, return an empty array.
+      if (!matches) {
+          return [];
+      }
+      // Since only the PayloadTypes are needed, we discard the <port>.
+      return matches.slice(1).map(function (match) { return parseInt(match, 10); });
   }
-  
   module.exports = { setCodecPreferences: setCodecPreferences };
-  },{"../util":29}],23:[function(require,module,exports){
-  'use strict';
   
+  },{"../util":29}],23:[function(require,module,exports){
   /* eslint-disable no-fallthrough */
   var MockRTCStatsReport = require('./mockrtcstatsreport');
-  
   var ERROR_PEER_CONNECTION_NULL = 'PeerConnection is null';
   var ERROR_WEB_RTC_UNSUPPORTED = 'WebRTC statistics are unsupported';
   var SIGNED_SHORT = 32767;
-  
   // (rrowland) Only needed to detect Chrome so we can force using legacy stats until standard
   // stats are fixed in Chrome.
   var isChrome = false;
   if (typeof window !== 'undefined') {
-    var isCriOS = !!window.navigator.userAgent.match('CriOS');
-    var isElectron = !!window.navigator.userAgent.match('Electron');
-    var isGoogle = typeof window.chrome !== 'undefined' && window.navigator.vendor === 'Google Inc.' && window.navigator.userAgent.indexOf('OPR') === -1 && window.navigator.userAgent.indexOf('Edge') === -1;
-  
-    isChrome = isCriOS || isElectron || isGoogle;
+      var isCriOS = !!window.navigator.userAgent.match('CriOS');
+      var isElectron = !!window.navigator.userAgent.match('Electron');
+      var isGoogle = typeof window.chrome !== 'undefined'
+          && window.navigator.vendor === 'Google Inc.'
+          && window.navigator.userAgent.indexOf('OPR') === -1
+          && window.navigator.userAgent.indexOf('Edge') === -1;
+      isChrome = isCriOS || isElectron || isGoogle;
   }
-  
   /**
    * @typedef {Object} StatsOptions
    * Used for testing to inject and extract methods.
@@ -5560,38 +5136,30 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
    * @return {Promise<RTCSample>} Universally-formatted version of RTC stats.
    */
   function getStatistics(peerConnection, options) {
-    options = Object.assign({
-      createRTCSample: createRTCSample
-    }, options);
-  
-    if (!peerConnection) {
-      return Promise.reject(new Error(ERROR_PEER_CONNECTION_NULL));
-    }
-  
-    if (typeof peerConnection.getStats !== 'function') {
-      return Promise.reject(new Error(ERROR_WEB_RTC_UNSUPPORTED));
-    }
-  
-    // (rrowland) Force using legacy stats on Chrome until audioLevel of the outbound
-    // audio track is no longer constantly zero.
-    if (isChrome) {
-      return new Promise(function (resolve, reject) {
-        return peerConnection.getStats(resolve, reject);
-      }).then(MockRTCStatsReport.fromRTCStatsResponse).then(options.createRTCSample);
-    }
-  
-    var promise = void 0;
-    try {
-      promise = peerConnection.getStats();
-    } catch (e) {
-      promise = new Promise(function (resolve, reject) {
-        return peerConnection.getStats(resolve, reject);
-      }).then(MockRTCStatsReport.fromRTCStatsResponse);
-    }
-  
-    return promise.then(options.createRTCSample);
+      options = Object.assign({
+          createRTCSample: createRTCSample
+      }, options);
+      if (!peerConnection) {
+          return Promise.reject(new Error(ERROR_PEER_CONNECTION_NULL));
+      }
+      if (typeof peerConnection.getStats !== 'function') {
+          return Promise.reject(new Error(ERROR_WEB_RTC_UNSUPPORTED));
+      }
+      // (rrowland) Force using legacy stats on Chrome until audioLevel of the outbound
+      // audio track is no longer constantly zero.
+      if (isChrome) {
+          return new Promise(function (resolve, reject) { return peerConnection.getStats(resolve, reject); }).then(MockRTCStatsReport.fromRTCStatsResponse)
+              .then(options.createRTCSample);
+      }
+      var promise;
+      try {
+          promise = peerConnection.getStats();
+      }
+      catch (e) {
+          promise = new Promise(function (resolve, reject) { return peerConnection.getStats(resolve, reject); }).then(MockRTCStatsReport.fromRTCStatsResponse);
+      }
+      return promise.then(options.createRTCSample);
   }
-  
   /**
    * @typedef {Object} RTCSample - A sample containing relevant WebRTC stats information.
    * @property {Number} [timestamp]
@@ -5608,8 +5176,7 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
    * @property {Number} [audioInputLevel] - Between 0 and 32767
    * @property {Number} [audioOutputLevel] - Between 0 and 32767
    */
-  function RTCSample() {}
-  
+  function RTCSample() { }
   /**
    * Create an RTCSample object from an RTCStatsReport
    * @private
@@ -5617,97 +5184,67 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
    * @returns {RTCSample}
    */
   function createRTCSample(statsReport) {
-    var activeTransportId = null;
-    var sample = new RTCSample();
-    var fallbackTimestamp = void 0;
-  
-    Array.from(statsReport.values()).forEach(function (stats) {
-      // Skip isRemote tracks which will be phased out completely and break in FF66.
-      if (stats.isRemote) {
-        return;
+      var activeTransportId = null;
+      var sample = new RTCSample();
+      var fallbackTimestamp;
+      Array.from(statsReport.values()).forEach(function (stats) {
+          // Firefox hack -- Firefox doesn't have dashes in type names
+          var type = stats.type.replace('-', '');
+          fallbackTimestamp = fallbackTimestamp || stats.timestamp;
+          switch (type) {
+              case 'inboundrtp':
+                  sample.timestamp = sample.timestamp || stats.timestamp;
+                  sample.jitter = stats.jitter * 1000;
+                  sample.packetsLost = stats.packetsLost;
+                  sample.packetsReceived = stats.packetsReceived;
+                  sample.bytesReceived = stats.bytesReceived;
+                  var inboundTrack = statsReport.get(stats.trackId);
+                  if (inboundTrack) {
+                      sample.audioOutputLevel = inboundTrack.audioLevel * SIGNED_SHORT;
+                  }
+                  break;
+              case 'outboundrtp':
+                  sample.timestamp = stats.timestamp;
+                  sample.packetsSent = stats.packetsSent;
+                  sample.bytesSent = stats.bytesSent;
+                  if (stats.codecId && statsReport.get(stats.codecId)) {
+                      var mimeType = statsReport.get(stats.codecId).mimeType;
+                      sample.codecName = mimeType && mimeType.match(/(.*\/)?(.*)/)[2];
+                  }
+                  var outboundTrack = statsReport.get(stats.trackId);
+                  if (outboundTrack) {
+                      sample.audioInputLevel = outboundTrack.audioLevel * SIGNED_SHORT;
+                  }
+                  break;
+              case 'transport':
+                  if (stats.dtlsState === 'connected') {
+                      activeTransportId = stats.id;
+                  }
+                  break;
+          }
+      });
+      if (!sample.timestamp) {
+          sample.timestamp = fallbackTimestamp;
       }
-  
-      // Firefox hack -- Older firefox doesn't have dashes in type names
-      var type = stats.type.replace('-', '');
-  
-      fallbackTimestamp = fallbackTimestamp || stats.timestamp;
-  
-      // (rrowland) As I understand it, this is supposed to come in on remote-inbound-rtp but it's
-      // currently coming in on remote-outbound-rtp, so I'm leaving this outside the switch until
-      // the appropriate place to look is cleared up.
-      if (stats.remoteId) {
-        var remote = statsReport.get(stats.remoteId);
-        if (remote && remote.roundTripTime) {
-          sample.rtt = remote.roundTripTime;
-        }
+      var activeTransport = statsReport.get(activeTransportId);
+      if (!activeTransport) {
+          return sample;
       }
-  
-      switch (type) {
-        case 'inboundrtp':
-          sample.timestamp = sample.timestamp || stats.timestamp;
-          sample.jitter = stats.jitter * 1000;
-          sample.packetsLost = stats.packetsLost;
-          sample.packetsReceived = stats.packetsReceived;
-          sample.bytesReceived = stats.bytesReceived;
-  
-          var inboundTrack = statsReport.get(stats.trackId);
-          if (inboundTrack) {
-            sample.audioOutputLevel = inboundTrack.audioLevel * SIGNED_SHORT;
-          }
-          break;
-        case 'outboundrtp':
-          sample.timestamp = stats.timestamp;
-          sample.packetsSent = stats.packetsSent;
-          sample.bytesSent = stats.bytesSent;
-  
-          if (stats.codecId && statsReport.get(stats.codecId)) {
-            var mimeType = statsReport.get(stats.codecId).mimeType;
-            sample.codecName = mimeType && mimeType.match(/(.*\/)?(.*)/)[2];
-          }
-  
-          var outboundTrack = statsReport.get(stats.trackId);
-          if (outboundTrack) {
-            sample.audioInputLevel = outboundTrack.audioLevel * SIGNED_SHORT;
-          }
-          break;
-        case 'transport':
-          if (stats.dtlsState === 'connected') {
-            activeTransportId = stats.id;
-          }
-          break;
+      var selectedCandidatePair = statsReport.get(activeTransport.selectedCandidatePairId);
+      if (!selectedCandidatePair) {
+          return sample;
       }
-    });
-  
-    if (!sample.timestamp) {
-      sample.timestamp = fallbackTimestamp;
-    }
-  
-    var activeTransport = statsReport.get(activeTransportId);
-    if (!activeTransport) {
+      var localCandidate = statsReport.get(selectedCandidatePair.localCandidateId);
+      var remoteCandidate = statsReport.get(selectedCandidatePair.remoteCandidateId);
+      Object.assign(sample, {
+          localAddress: localCandidate && localCandidate.ip,
+          remoteAddress: remoteCandidate && remoteCandidate.ip,
+          rtt: selectedCandidatePair && (selectedCandidatePair.currentRoundTripTime * 1000)
+      });
       return sample;
-    }
-  
-    var selectedCandidatePair = statsReport.get(activeTransport.selectedCandidatePairId);
-    if (!selectedCandidatePair) {
-      return sample;
-    }
-  
-    var localCandidate = statsReport.get(selectedCandidatePair.localCandidateId);
-    var remoteCandidate = statsReport.get(selectedCandidatePair.remoteCandidateId);
-  
-    if (!sample.rtt) {
-      sample.rtt = selectedCandidatePair && selectedCandidatePair.currentRoundTripTime * 1000;
-    }
-  
-    Object.assign(sample, {
-      localAddress: localCandidate && localCandidate.ip,
-      remoteAddress: remoteCandidate && remoteCandidate.ip
-    });
-  
-    return sample;
   }
-  
   module.exports = getStatistics;
+  
   },{"./mockrtcstatsreport":17}],24:[function(require,module,exports){
   var EventEmitter = require('events').EventEmitter;
   function EventTarget() {
@@ -5756,38 +5293,19 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
   module.exports = EventTarget;
   
   },{"events":42}],25:[function(require,module,exports){
-  "use strict";
-  
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-  
-  var MediaDeviceInfoShim = function MediaDeviceInfoShim(options) {
-    _classCallCheck(this, MediaDeviceInfoShim);
-  
-    Object.defineProperties(this, {
-      deviceId: {
-        get: function get() {
-          return options.deviceId;
-        }
-      },
-      groupId: {
-        get: function get() {
-          return options.groupId;
-        }
-      },
-      kind: {
-        get: function get() {
-          return options.kind;
-        }
-      },
-      label: {
-        get: function get() {
-          return options.label;
-        }
+  var MediaDeviceInfoShim = /** @class */ (function () {
+      function MediaDeviceInfoShim(options) {
+          Object.defineProperties(this, {
+              deviceId: { get: function () { return options.deviceId; } },
+              groupId: { get: function () { return options.groupId; } },
+              kind: { get: function () { return options.kind; } },
+              label: { get: function () { return options.label; } },
+          });
       }
-    });
-  };
-  
+      return MediaDeviceInfoShim;
+  }());
   module.exports = MediaDeviceInfoShim;
+  
   },{}],26:[function(require,module,exports){
   var EventTarget = require('./eventtarget');
   var inherits = require('util').inherits;
@@ -5934,10 +5452,7 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
   })();
   
   },{"./eventtarget":24,"util":53}],27:[function(require,module,exports){
-  'use strict';
-  
   var AudioPlayer = require('@twilio/audioplayer');
-  
   /**
    * @class
    * @param {string} name - Name of the sound
@@ -5948,178 +5463,158 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
    * @property {string} url - URL of the sound
    * @property {AudioContext} audioContext - The AudioContext to use if available for AudioPlayer.
    */ /**
-      * @typedef {Object} Sound#ConstructorOptions
-      * @property {number} [maxDuration=0] - The maximum length of time to play the sound
-      *   before stopping it.
-      * @property {Boolean} [shouldLoop=false] - Whether the sound should be looped.
-      */
+  * @typedef {Object} Sound#ConstructorOptions
+  * @property {number} [maxDuration=0] - The maximum length of time to play the sound
+  *   before stopping it.
+  * @property {Boolean} [shouldLoop=false] - Whether the sound should be looped.
+  */
   function Sound(name, url, options) {
-    if (!(this instanceof Sound)) {
-      return new Sound(name, url, options);
-    }
-  
-    if (!name || !url) {
-      throw new Error('name and url are required arguments');
-    }
-  
-    options = Object.assign({
-      AudioFactory: typeof Audio !== 'undefined' ? Audio : null,
-      maxDuration: 0,
-      shouldLoop: false
-    }, options);
-  
-    options.AudioPlayer = options.audioContext ? AudioPlayer.bind(AudioPlayer, options.audioContext) : options.AudioFactory;
-  
-    Object.defineProperties(this, {
-      _activeEls: {
-        value: new Set()
-      },
-      _Audio: {
-        value: options.AudioPlayer
-      },
-      _isSinkSupported: {
-        value: options.AudioFactory !== null && typeof options.AudioFactory.prototype.setSinkId === 'function'
-      },
-      _maxDuration: {
-        value: options.maxDuration
-      },
-      _maxDurationTimeout: {
-        value: null,
-        writable: true
-      },
-      _playPromise: {
-        value: null,
-        writable: true
-      },
-      _shouldLoop: {
-        value: options.shouldLoop
-      },
-      _sinkIds: {
-        value: ['default']
-      },
-      isPlaying: {
-        enumerable: true,
-        get: function get() {
-          return !!this._playPromise;
-        }
-      },
-      name: {
-        enumerable: true,
-        value: name
-      },
-      url: {
-        enumerable: true,
-        value: url
+      if (!(this instanceof Sound)) {
+          return new Sound(name, url, options);
       }
-    });
-  
-    if (this._Audio) {
-      preload(this._Audio, url);
-    }
+      if (!name || !url) {
+          throw new Error('name and url are required arguments');
+      }
+      options = Object.assign({
+          AudioFactory: typeof Audio !== 'undefined' ? Audio : null,
+          maxDuration: 0,
+          shouldLoop: false
+      }, options);
+      options.AudioPlayer = options.audioContext
+          ? AudioPlayer.bind(AudioPlayer, options.audioContext)
+          : options.AudioFactory;
+      Object.defineProperties(this, {
+          _activeEls: {
+              value: new Set()
+          },
+          _Audio: {
+              value: options.AudioPlayer
+          },
+          _isSinkSupported: {
+              value: options.AudioFactory !== null
+                  && typeof options.AudioFactory.prototype.setSinkId === 'function'
+          },
+          _maxDuration: {
+              value: options.maxDuration
+          },
+          _maxDurationTimeout: {
+              value: null,
+              writable: true
+          },
+          _playPromise: {
+              value: null,
+              writable: true
+          },
+          _shouldLoop: {
+              value: options.shouldLoop
+          },
+          _sinkIds: {
+              value: ['default']
+          },
+          isPlaying: {
+              enumerable: true,
+              get: function () {
+                  return !!this._playPromise;
+              }
+          },
+          name: {
+              enumerable: true,
+              value: name
+          },
+          url: {
+              enumerable: true,
+              value: url
+          }
+      });
+      if (this._Audio) {
+          preload(this._Audio, url);
+      }
   }
-  
   function preload(AudioFactory, url) {
-    var el = new AudioFactory(url);
-    el.preload = 'auto';
-    el.muted = true;
-  
-    // Play it (muted) as soon as possible so that it does not get incorrectly caught by Chrome's
-    // "gesture requirement for media playback" feature.
-    // https://plus.google.com/+FrancoisBeaufort/posts/6PiJQqJzGqX
-    el.play();
+      var el = new AudioFactory(url);
+      el.preload = 'auto';
+      el.muted = true;
+      // Play it (muted) as soon as possible so that it does not get incorrectly caught by Chrome's
+      // "gesture requirement for media playback" feature.
+      // https://plus.google.com/+FrancoisBeaufort/posts/6PiJQqJzGqX
+      el.play();
   }
-  
   /**
    * Update the sinkIds of the audio output devices this sound should play through.
    */
   Sound.prototype.setSinkIds = function setSinkIds(ids) {
-    if (!this._isSinkSupported) {
-      return;
-    }
-  
-    ids = ids.forEach ? ids : [ids];
-    [].splice.apply(this._sinkIds, [0, this._sinkIds.length].concat(ids));
+      if (!this._isSinkSupported) {
+          return;
+      }
+      ids = ids.forEach ? ids : [ids];
+      [].splice.apply(this._sinkIds, [0, this._sinkIds.length].concat(ids));
   };
-  
   /**
    * Stop playing the sound.
    * @return {void}
    */
   Sound.prototype.stop = function stop() {
-    this._activeEls.forEach(function (audioEl) {
-      audioEl.pause();
-      audioEl.src = '';
-      audioEl.load();
-    });
-  
-    this._activeEls.clear();
-  
-    clearTimeout(this._maxDurationTimeout);
-  
-    this._playPromise = null;
-    this._maxDurationTimeout = null;
+      this._activeEls.forEach(function (audioEl) {
+          audioEl.pause();
+          audioEl.src = '';
+          audioEl.load();
+      });
+      this._activeEls.clear();
+      clearTimeout(this._maxDurationTimeout);
+      this._playPromise = null;
+      this._maxDurationTimeout = null;
   };
-  
   /**
    * Start playing the sound. Will stop the currently playing sound first.
    */
   Sound.prototype.play = function play() {
-    if (this.isPlaying) {
-      this.stop();
-    }
-  
-    if (this._maxDuration > 0) {
-      this._maxDurationTimeout = setTimeout(this.stop.bind(this), this._maxDuration);
-    }
-  
-    var self = this;
-    var playPromise = this._playPromise = Promise.all(this._sinkIds.map(function createAudioElement(sinkId) {
-      if (!self._Audio) {
-        return Promise.resolve();
+      if (this.isPlaying) {
+          this.stop();
       }
-  
-      var audioElement = new self._Audio(self.url);
-      audioElement.loop = self._shouldLoop;
-  
-      audioElement.addEventListener('ended', function () {
-        self._activeEls.delete(audioElement);
-      });
-  
-      /**
-       * (rrowland) Bug in Chrome 53 & 54 prevents us from calling Audio.setSinkId without
-       *   crashing the tab. https://bugs.chromium.org/p/chromium/issues/detail?id=655342
-       */
-      return new Promise(function (resolve) {
-        audioElement.addEventListener('canplaythrough', resolve);
-      }).then(function () {
-        // If stop has already been called, or another play has been initiated,
-        // bail out before setting up the element to play.
-        if (!self.isPlaying || self._playPromise !== playPromise) {
-          return Promise.resolve();
-        }
-  
-        return (self._isSinkSupported ? audioElement.setSinkId(sinkId) : Promise.resolve()).then(function setSinkIdSuccess() {
-          self._activeEls.add(audioElement);
-          return audioElement.play();
-        }).then(function playSuccess() {
-          return audioElement;
-        }, function playFailure(reason) {
-          self._activeEls.delete(audioElement);
-          throw reason;
-        });
-      });
-    }));
-  
-    return playPromise;
+      if (this._maxDuration > 0) {
+          this._maxDurationTimeout = setTimeout(this.stop.bind(this), this._maxDuration);
+      }
+      var self = this;
+      var playPromise = this._playPromise = Promise.all(this._sinkIds.map(function createAudioElement(sinkId) {
+          if (!self._Audio) {
+              return Promise.resolve();
+          }
+          var audioElement = new self._Audio(self.url);
+          audioElement.loop = self._shouldLoop;
+          audioElement.addEventListener('ended', function () {
+              self._activeEls.delete(audioElement);
+          });
+          /**
+           * (rrowland) Bug in Chrome 53 & 54 prevents us from calling Audio.setSinkId without
+           *   crashing the tab. https://bugs.chromium.org/p/chromium/issues/detail?id=655342
+           */
+          return new Promise(function (resolve) {
+              audioElement.addEventListener('canplaythrough', resolve);
+          }).then(function () {
+              // If stop has already been called, or another play has been initiated,
+              // bail out before setting up the element to play.
+              if (!self.isPlaying || self._playPromise !== playPromise) {
+                  return Promise.resolve();
+              }
+              return (self._isSinkSupported
+                  ? audioElement.setSinkId(sinkId)
+                  : Promise.resolve()).then(function setSinkIdSuccess() {
+                  self._activeEls.add(audioElement);
+                  return audioElement.play();
+              }).then(function playSuccess() {
+                  return audioElement;
+              }, function playFailure(reason) {
+                  self._activeEls.delete(audioElement);
+                  throw reason;
+              });
+          });
+      }));
+      return playPromise;
   };
-  
   module.exports = Sound;
+  
   },{"@twilio/audioplayer":34}],28:[function(require,module,exports){
   "use strict";
-  /**
-   * @module Tools
-   * @internalapi
-   */
   Object.defineProperty(exports, "__esModule", { value: true });
   /**
    * Valid LogLevels.
@@ -6151,9 +5646,6 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
       _b[LogLevel.Error] = 3,
       _b[LogLevel.Off] = 4,
       _b);
-  /**
-   * @internalapi
-   */
   var Log = /** @class */ (function () {
       /**
        * @param logLevel - The initial LogLevel threshold to display logs for.
@@ -6333,10 +5825,6 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
   }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
   },{}],30:[function(require,module,exports){
   "use strict";
-  /**
-   * @module Tools
-   * @internalapi
-   */
   var __extends = (this && this.__extends) || (function () {
       var extendStatics = Object.setPrototypeOf ||
           ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -6392,6 +5880,15 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
            */
           _this.state = WSTransportState.Closed;
           /**
+           * The backoff instance used to schedule reconnection attempts.
+           */
+          _this._backoff = Backoff.exponential({
+              factor: 1.5,
+              initialDelay: 30,
+              maxDelay: 3000,
+              randomisationFactor: 0.25,
+          });
+          /**
            * Called in response to WebSocket#close event.
            */
           _this._onSocketClose = function () {
@@ -6429,14 +5926,6 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
               _this._setHeartbeatTimeout();
               _this.emit('open');
           };
-          _this._backoff = Backoff.exponential({
-              factor: 2.0,
-              initialDelay: 100,
-              maxDelay: typeof options.backoffMaxMs === 'number'
-                  ? Math.max(options.backoffMaxMs, 3000)
-                  : 20000,
-              randomisationFactor: 0.40,
-          });
           _this._log = new tslog_1.default(options.logLevel || tslog_1.LogLevel.Off);
           _this._uri = uri;
           _this._WebSocket = options.WebSocket || WebSocket;
@@ -9437,7 +8926,7 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
   
   function maybeAddCandidate(iceTransport, candidate) {
     // Edge's internal representation adds some fields therefore
-    // not all fieldѕ are taken into account.
+    // not all fieldÑ• are taken into account.
     var alreadyAdded = iceTransport.getRemoteCandidates()
         .find(function(remoteCandidate) {
           return candidate.foundation === remoteCandidate.foundation &&
@@ -9814,7 +9303,7 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
       iceGatherer.onlocalcandidate = function(evt) {
         if (pc.usingBundle && sdpMLineIndex > 0) {
           // if we know that we use bundle we can drop candidates with
-          // ѕdpMLineIndex > 0. If we don't do this then our state gets
+          // Ñ•dpMLineIndex > 0. If we don't do this then our state gets
           // confused since we dispose the extra ice gatherer.
           return;
         }
@@ -9822,7 +9311,7 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
         event.candidate = {sdpMid: mid, sdpMLineIndex: sdpMLineIndex};
   
         var cand = evt.candidate;
-        // Edge emits an empty object for RTCIceCandidateComplete‥
+        // Edge emits an empty object for RTCIceCandidateCompleteâ€¥
         var end = !cand || Object.keys(cand).length === 0;
         if (end) {
           // polyfill since RTCIceGatherer.state is not implemented in
@@ -11455,7 +10944,7 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
     rtcpParameters.reducedSize = rsize.length > 0;
     rtcpParameters.compound = rsize.length === 0;
   
-    // parses the rtcp-mux attrіbute.
+    // parses the rtcp-mux attrÑ–bute.
     // Note that Edge does not support unmuxed RTCP.
     var mux = SDPUtils.matchPrefix(mediaSection, 'a=rtcp-mux');
     rtcpParameters.mux = mux.length > 0;
@@ -12244,7 +11733,7 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
   },{"./support/isBuffer":52,"_process":47,"inherits":43}],54:[function(require,module,exports){
   module.exports={
     "name": "twilio-client",
-    "version": "1.7.0",
+    "version": "1.7.0-beta1",
     "description": "Javascript SDK for Twilio Client",
     "homepage": "https://www.twilio.com/docs/client/twilio-js",
     "main": "./es5/twilio.js",
@@ -12260,19 +11749,16 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
       "url": "git@code.hq.twilio.com:client/twiliojs.git"
     },
     "scripts": {
-      "build": "npm-run-all clean docs:ts build:es5 build:ts build:dist build:dist-min",
+      "build": "npm-run-all clean docs:ts docs:js build:es5 build:ts build:dist build:dist-min",
       "build:es5": "rimraf ./es5 && babel lib -d es5",
       "build:dist": "node ./scripts/build.js ./lib/browser.js ./LICENSE.md ./dist/twilio.js",
       "build:dist-min": "uglifyjs ./dist/twilio.js -o ./dist/twilio.min.js --comments \"/^! twilio-client.js/\" -b beautify=false,ascii_only=true",
-      "build:release": "npm-run-all lint build test:unit test:integration test:webpack test:es5 status",
+      "build:travis": "npm-run-all lint build test:unit test:integration test:webpack test:es5 status",
       "build:ts": "tsc",
       "clean": "rimraf ./coverage ./dist ./es5",
       "coverage": "nyc ./node_modules/mocha/bin/mocha -r ts-node/register ./tests/index.ts",
-      "coverage:check": "nyc check-coverage --lines 60 --branches 60 --functions 60",
-      "docs:clean": "rimraf ./docs",
       "docs:js": "jsdoc -r -d dist/docs/js lib/twilio",
-      "docs:json": "typedoc --json dist/docs/raw.json --internal-aliases internal,publicapi --external-aliases external,internalapi --excludePrivate --excludeProtected",
-      "docs:ts": "typedoc --out docs --internal-aliases internal,publicapi --external-aliases external,internalapi --excludePrivate --excludeProtected --theme ./node_modules/typedoc-twilio-theme/bin/default",
+      "docs:ts": "typedoc --out dist/docs/ts lib/twilio",
       "extension": "browserify -t brfs extension/token/index.js > extension/token.js",
       "lint": "npm-run-all lint:js lint:ts",
       "lint:js": "eslint lib",
@@ -12290,13 +11776,12 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
       "test:frameworks": "npm-run-all test:framework:no-framework test:framework:react",
       "test:integration": "karma start karma.conf.ts",
       "test:selenium": "mocha tests/browser/index.js",
-      "test:unit": "nyc mocha -r ts-node/register ./tests/index.ts",
+      "test:unit": "mocha --reporter=spec -r ts-node/register ./tests/index.ts",
       "test:webpack": "cd ./tests/webpack && npm install && npm test"
     },
     "pre-commit": [
       "lint",
-      "test:unit",
-      "docs:ts"
+      "test:unit"
     ],
     "devDependencies": {
       "@types/mocha": "5.0.0",
@@ -12344,9 +11829,6 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
       "twilio": "3.17.0",
       "typedoc": "github:ryan-rowland/typedoc#twilio",
       "typedoc-plugin-as-member-of": "1.0.2",
-      "typedoc-plugin-external-module-name": "1.1.3",
-      "typedoc-plugin-internal-external": "1.0.10",
-      "typedoc-twilio-theme": "1.0.0",
       "typescript": "2.8.1",
       "uglify-js": "3.3.11",
       "vinyl-fs": "3.0.2",
@@ -12356,7 +11838,7 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
       "@twilio/audioplayer": "1.0.3",
       "backoff": "2.5.0",
       "rtcpeerconnection-shim": "1.2.8",
-      "ws": "^6.1.3",
+      "ws": "0.4.31",
       "xmlhttprequest": "1.8.0"
     },
     "browser": {
@@ -12378,4 +11860,3 @@ This software includes rtcpeerconnection-shim under the following (BSD 3-Clause)
       Twilio.PStream = Twilio.PStream || Voice.PStream;
     }
   })(typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : this);
-  
